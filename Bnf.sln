@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bnf.Serialization", ".\Bnf.Serialization.csproj", "{13996A05-3D61-4CF7-89A0-C0835A8261DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bnf.Serialization", "Bnf.Serialization.csproj", "{13996A05-3D61-4CF7-89A0-C0835A8261DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bnf.Tests", "Bnf.Tests\Bnf.Tests.csproj", "{757EC42C-866A-4753-A345-BEEA80F4B78E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +17,10 @@ Global
 		{13996A05-3D61-4CF7-89A0-C0835A8261DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13996A05-3D61-4CF7-89A0-C0835A8261DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13996A05-3D61-4CF7-89A0-C0835A8261DB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C433B975-A468-4207-B5C7-D1DE9C67B110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C433B975-A468-4207-B5C7-D1DE9C67B110}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C433B975-A468-4207-B5C7-D1DE9C67B110}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C433B975-A468-4207-B5C7-D1DE9C67B110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{757EC42C-866A-4753-A345-BEEA80F4B78E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{757EC42C-866A-4753-A345-BEEA80F4B78E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{757EC42C-866A-4753-A345-BEEA80F4B78E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{757EC42C-866A-4753-A345-BEEA80F4B78E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

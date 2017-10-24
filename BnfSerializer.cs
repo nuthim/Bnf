@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Dynamic;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -12,7 +13,6 @@ namespace Bnf.Serialization
         private readonly BnfSettings _settings;
         private const char FieldSeparator = '|';
         private const char KeyValueSeparator = '=';
-        private IDictionary<string, string> _defaultEscapeCodes;
 
         #region Constructor
 
@@ -24,10 +24,6 @@ namespace Bnf.Serialization
         public BnfSerializer(BnfSettings settings)
         {
             _settings = settings ?? new BnfSettings();
-            _defaultEscapeCodes.Add("{", @"{{");
-            _defaultEscapeCodes.Add("}", @"}}");
-            _defaultEscapeCodes.Add(@"\", @"\\");
-            _defaultEscapeCodes.Add("|", @"||");
         }
 
         #endregion
@@ -85,11 +81,10 @@ namespace Bnf.Serialization
                 case "TimeSpan":
                     return string.Format(formatString ?? _settings.TimeFormat, value);
 
-               // case "String":
-                    //string santized = value.ToString().Replace("{", @"\[").Replace("}", @"\]").Replace("\", @"\\\\");
+                case "String":
+                    return value.ToString().Escape(_settings.EscapeCodes);
 
-                   // break;
-                 default:
+                default:
                     return string.Format("{0}", value);
             }
         }
