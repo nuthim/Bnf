@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Dynamic;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -10,23 +9,20 @@ namespace Bnf.Serialization
     public class BnfSerializer
     {
         private const string DictionaryPattern = "{(?<value>.*)}"; //Combination of key/value pairs enclosed in braces; {...}.
-        private readonly BnfSettings _settings;
+        private BnfSettings _settings;
         private const char FieldSeparator = '|';
         private const char KeyValueSeparator = '=';
 
-        #region Constructor
-
-        public BnfSerializer() : this(null)
+        public BnfSettings Settings
         {
-            
+            get { return _settings ?? (_settings = new BnfSettings()); }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+                _settings = value;
+            }
         }
-
-        public BnfSerializer(BnfSettings settings)
-        {
-            _settings = settings ?? new BnfSettings();
-        }
-
-        #endregion
 
         public string Serialize(object data)
         {
@@ -57,11 +53,11 @@ namespace Bnf.Serialization
                 var propertyInfo = map.Property;
                 var propertyValue = propertyInfo.GetValue(data);
 
-                if (propertyValue == null && _settings.IgnoreNull)
+                if (propertyValue == null && Settings.IgnoreNull)
                     continue;
 
                 var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
-                var fieldValue = propertyValue == null ? bnfAttribute.NullText ?? _settings.NullText :
+                var fieldValue = propertyValue == null ? bnfAttribute.NullText ?? Settings.NullText :
                     !isPrimitive ? Serialize(propertyValue) :
                     GetFormattedValue(propertyValue, bnfAttribute.DataFormatString);
 
@@ -76,13 +72,13 @@ namespace Bnf.Serialization
             switch(value.GetType().Name)
             {
                 case "DateTime":
-                    return string.Format(formatString ?? _settings.DateFormat, value);
+                    return string.Format(formatString ?? Settings.DateFormat, value);
 
                 case "TimeSpan":
-                    return string.Format(formatString ?? _settings.TimeFormat, value);
+                    return string.Format(formatString ?? Settings.TimeFormat, value);
 
                 case "String":
-                    return value.ToString().Escape(_settings.EscapeCodes);
+                    return value.ToString().Escape(Settings.EscapeCodes);
 
                 default:
                     return string.Format("{0}", value);
