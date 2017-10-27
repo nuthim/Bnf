@@ -8,10 +8,12 @@ namespace Bnf.Serialization
 {
     public class BnfSerializer
     {
-        private const string DictionaryPattern = "{(?<value>.*)}"; //Combination of key/value pairs enclosed in braces; {...}.
+        #region Fields
+        private const string ComplexTypePattern = "{(?<value>.*)}"; //Combination of key/value pairs enclosed in braces; {...}.
         private BnfSettings _settings;
         private const char FieldSeparator = '|';
         private const char KeyValueSeparator = '=';
+        #endregion
 
         public BnfSettings Settings
         {
@@ -23,6 +25,20 @@ namespace Bnf.Serialization
                 _settings = value;
             }
         }
+
+        #region Constructor
+
+        public BnfSerializer() : this(null)
+        {
+
+        }
+
+        public BnfSerializer(BnfSettings settings)
+        {
+            _settings = settings;
+        }
+
+        #endregion
 
         public string Serialize(object data)
         {
@@ -53,7 +69,7 @@ namespace Bnf.Serialization
                 var propertyInfo = map.Property;
                 var propertyValue = propertyInfo.GetValue(data);
 
-                if (propertyValue == null && Settings.IgnoreNull)
+                if (propertyValue == null && bnfAttribute.NullText == null && Settings.NullText == null)
                     continue;
 
                 var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
@@ -88,7 +104,7 @@ namespace Bnf.Serialization
         private ExpandoObject CreateExpandoObject(string bnf)
         {
             string fieldValue;
-            IsDictionary(bnf, out fieldValue);
+            IsComplexType(bnf, out fieldValue);
 
             var fields = GetPairs(fieldValue);
 
@@ -99,7 +115,7 @@ namespace Bnf.Serialization
                 var propertyName = items[0].Trim();
                 var propertyValue = items[1].Trim();
 
-                AddProperty(obj, propertyName, !IsDictionary(propertyValue, out fieldValue) ? (object) propertyValue : CreateExpandoObject(propertyValue));
+                AddProperty(obj, propertyName, !IsComplexType(propertyValue, out fieldValue) ? (object) propertyValue : CreateExpandoObject(propertyValue));
             }
 
             return obj;
@@ -167,13 +183,13 @@ namespace Bnf.Serialization
             return properties;
         }
 
-        private static bool IsDictionary(string input, out string value)
+        private static bool IsComplexType(string input, out string value)
         {
             value = input;
-            if (!Regex.IsMatch(input, DictionaryPattern))
+            if (!Regex.IsMatch(input, ComplexTypePattern))
                 return false;
 
-            var match = Regex.Match(input, DictionaryPattern);
+            var match = Regex.Match(input, ComplexTypePattern);
             value = match.Groups["value"].Value;
             return true;
         }

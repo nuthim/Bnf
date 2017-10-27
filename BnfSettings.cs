@@ -21,11 +21,6 @@ namespace Bnf.Serialization
 
         public BnfSettings()
         {
-            IgnoreNull = true;
-            //_escapeCodes.Add('{', @"\[");
-            //_escapeCodes.Add('}', @"\]");
-            //_escapeCodes.Add('\\', @"\\");
-            //_escapeCodes.Add('|', @"\/");
             _escapeCodes = new Dictionary<char, string>();
             _escapeCodes.Add('{', @"{{");
             _escapeCodes.Add('}', @"}}");
@@ -35,8 +30,6 @@ namespace Bnf.Serialization
         #endregion
 
         #region Properties
-
-        public bool IgnoreNull { get; set; }
 
         public string NullText
         {
