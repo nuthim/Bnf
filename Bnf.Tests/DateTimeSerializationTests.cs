@@ -22,7 +22,7 @@ namespace Bnf.Tests
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public void DefaultDateFormatTest()
         {
             var result = serializer.Serialize(dateTimeObj);
 
@@ -34,7 +34,7 @@ namespace Bnf.Tests
         }
 
         [TestMethod]
-        public void TestMethod2()
+        public void ExplicitDateFormatTest()
         {
             var result = serializer.Serialize(dateTimeObj);
 
@@ -46,9 +46,9 @@ namespace Bnf.Tests
         }
 
         [TestMethod]
-        public void TestMethod3()
+        public void SettingsDateFormatTest()
         {
-            serializer.Settings.DateFormat = "dd MM yyyy";
+            serializer.Settings.DateFormat = "{0:dd MM yyyy}";
             var result = serializer.Serialize(dateTimeObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.SettingsFormatDate));
