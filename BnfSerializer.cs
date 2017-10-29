@@ -85,20 +85,15 @@ namespace Bnf.Serialization
 
         private string GetFormattedValue(object value, string formatString)
         {
-            switch(value.GetType().Name)
-            {
-                case "DateTime":
-                    return string.Format(formatString ?? Settings.DateFormat, value);
+            var type = value.GetType();
+            if (type == typeof(string))
+                value = value.ToString().Escape(Settings.EscapeCodes);
 
-                case "TimeSpan":
-                    return string.Format(formatString ?? Settings.TimeFormat, value);
+            var format = formatString ?? Settings.GetFormatString(type);
+            if (format == null)
+                return string.Format("{0}", value);
 
-                case "String":
-                    return value.ToString().Escape(Settings.EscapeCodes);
-
-                default:
-                    return string.Format("{0}", value);
-            }
+            return string.Format(format, value);
         }
 
         private ExpandoObject CreateExpandoObject(string bnf)

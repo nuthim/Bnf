@@ -3,7 +3,7 @@
 namespace Bnf.Serialization
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
-    public class BnfAttribute : Attribute
+    public class BnfPropertyAttribute : Attribute
     {
         public string Key { get; set; }
 

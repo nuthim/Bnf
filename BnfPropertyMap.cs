@@ -2,15 +2,15 @@ using System.Reflection;
 
 namespace Bnf.Serialization
 {
-    public class BnfFieldMap
+    public class BnfPropertyMap
     {
         public PropertyInfo Property { get; }
 
-        public BnfAttribute Attribute { get; }
+        public BnfPropertyAttribute Attribute { get; }
 
         public int InheritanceLevel { get; }
 
-        public BnfFieldMap(PropertyInfo property, BnfAttribute attribute, int inheritanceLevel)
+        public BnfPropertyMap(PropertyInfo property, BnfPropertyAttribute attribute, int inheritanceLevel)
         {
             Property = property;
             Attribute = attribute;
