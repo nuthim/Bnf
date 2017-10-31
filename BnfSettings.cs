@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Collections.ObjectModel;
 
 namespace Bnf.Serialization
 {
@@ -9,20 +9,17 @@ namespace Bnf.Serialization
         #region Constants
         public const string DefaultNullText = null;
         private readonly IDictionary<Type, string> _formatStrings;
-        #endregion
-
-        #region Fields
-        private string _nullText;
+        private readonly IDictionary<char, string> _escapeCodes;
         #endregion
 
         #region Constructor
 
         public BnfSettings()
         {
-            EscapeCodes = new Dictionary<char, string>();
-            EscapeCodes.Add('{', @"{{");
-            EscapeCodes.Add('}', @"}}");
-            EscapeCodes.Add('|', @"||");
+            _escapeCodes = new Dictionary<char, string>();
+            _escapeCodes.Add('{', @"{{");
+            _escapeCodes.Add('}', @"}}");
+            _escapeCodes.Add('|', @"||");
 
             _formatStrings = new Dictionary<Type, string>();
         }
@@ -31,19 +28,21 @@ namespace Bnf.Serialization
 
         #region Properties
 
-        public string NullText
+        public string NullText { get; set; }
+
+        public IReadOnlyDictionary<char, string> EscapeCodes
         {
-            get { return _nullText ?? _nullText; }
-            set { _nullText = value; }
+            get { return new ReadOnlyDictionary<char, string>(_escapeCodes); }
         }
 
-        public IDictionary<char, string> EscapeCodes
+        public IReadOnlyDictionary<Type, string> FormatStrings
         {
-            get; set;
+            get { return new ReadOnlyDictionary<Type, string>(_formatStrings); }
         }
-
 
         #endregion
+
+        #region Public Methods
 
         public string GetFormatString(Type type)
         {
@@ -66,5 +65,30 @@ namespace Bnf.Serialization
             _formatStrings[type] = formatString.Trim();
         }
 
+        public string GetEscapeCode(char escapeChar)
+        {
+            string escapeCode;
+            _escapeCodes.TryGetValue(escapeChar, out escapeCode);
+            return escapeCode;
+        }
+
+        public void SetEscapeCode(char escapeChar, string escapeCode)
+        {
+            if (escapeCode == null)
+            {
+                _escapeCodes.Remove(escapeChar);
+                return;
+            }
+
+
+            //TODO: Validate the escape code
+            var code = escapeCode.Trim();
+            if (code.Length == 1 && code == escapeChar.ToString())
+                throw new ArgumentException("Escape code can't be same as the character to be escaped", nameof(escapeCode));
+
+            _escapeCodes[escapeChar] = escapeCode.Trim();
+        }
+
+        #endregion
     }
 }

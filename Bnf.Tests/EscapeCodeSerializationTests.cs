@@ -38,7 +38,7 @@ namespace Bnf.Tests
         {
             //Test default escape codes for }, {, | along with ;
 
-            serializer.Settings.EscapeCodes.Add(';', "[]");
+            serializer.Settings.SetEscapeCode(';', "[]");
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.ShortName));

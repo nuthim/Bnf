@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Dynamic;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-
+using System.Collections;
 
 namespace Bnf.Serialization
 {
@@ -42,12 +43,27 @@ namespace Bnf.Serialization
 
         public string Serialize(object data)
         {
-            var validator = new BnfValidator();
-            List<Exception> errors;
-            if (!validator.Validate(data, out errors))
-                throw new InvalidOperationException("Invalid data", new AggregateException(errors));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-            var pairs = GetKeyValuePairs(data);
+            IEnumerable<KeyValuePair<string, string>> pairs;
+
+            if (data.GetType().IsArray)
+            {
+                var array = data as object[];
+                pairs = Serialize(array);
+            }
+            else
+            {
+
+                var validator = new BnfValidator();
+                List<Exception> errors;
+                if (!validator.Validate(data, out errors))
+                    throw new InvalidOperationException("Invalid data", new AggregateException(errors));
+
+                pairs = GetKeyValuePairs(data);
+            }
+
             return $"{{{pairs.Join(KeyValueSeparator, FieldSeparator)}}}";
         }
 
@@ -59,6 +75,22 @@ namespace Bnf.Serialization
 
         #region Helper Methods
 
+        private IEnumerable<KeyValuePair<string, string>> Serialize(object[] array)
+        {
+            var fields = new List<KeyValuePair<string, string>>();
+            for (var index = 0; index < array.Length; index++)
+            {
+                var item = array[index];
+                if (item == null)
+                    continue;
+
+                var str = Serialize(item);
+                fields.Add(new KeyValuePair<string, string>($"{item.GetType().Name}{index+1}", str));
+            }
+
+            return fields.ToArray();
+        }
+
         private IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(object data)
         {
             var fields = new List<KeyValuePair<string, string>>();
@@ -69,15 +101,16 @@ namespace Bnf.Serialization
                 var propertyInfo = map.Property;
                 var propertyValue = propertyInfo.GetValue(data);
 
-                if (propertyValue == null && bnfAttribute.NullText == null && Settings.NullText == null)
+                var nullText = bnfAttribute?.NullText ?? Settings.NullText;
+                if (propertyValue == null && nullText == null)
                     continue;
 
                 var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
-                var fieldValue = propertyValue == null ? bnfAttribute.NullText ?? Settings.NullText :
+                var fieldValue = propertyValue == null ? nullText :
                     !isPrimitive ? Serialize(propertyValue) :
-                    GetFormattedValue(propertyValue, bnfAttribute.DataFormatString);
+                    GetFormattedValue(propertyValue, bnfAttribute?.DataFormatString);
 
-                fields.Add(new KeyValuePair<string, string>(bnfAttribute.Key, fieldValue));
+                fields.Add(new KeyValuePair<string, string>(bnfAttribute?.Key ?? propertyInfo.Name, fieldValue));
             }
 
             return fields.ToArray();

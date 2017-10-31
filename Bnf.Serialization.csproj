@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BnfArrayAttribute.cs" />
+    <Compile Include="BnfIgnoreAttribute.cs" />
     <Compile Include="BnfPropertyAttribute.cs" />
     <Compile Include="BnfPropertyMap.cs" />
     <Compile Include="BnfSerializer.cs" />

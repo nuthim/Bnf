@@ -13,7 +13,7 @@ namespace Bnf.Serialization
                 throw new ArgumentNullException(nameof(obj));
 
             var result = new List<BnfPropertyMap>(GetFields(0, obj.GetType()));
-            return result.OrderByDescending(x => x.InheritanceLevel).ThenBy(x => x.Attribute.Order);
+            return result.OrderByDescending(x => x.InheritanceLevel);
         }
 
         private static IEnumerable<BnfPropertyMap> GetFields(int level, Type type)
@@ -23,16 +23,13 @@ namespace Bnf.Serialization
             if (type.BaseType != typeof(object))
                 map.AddRange(GetFields(level + 1, type.BaseType));
 
-            foreach (var property in type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var property in type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance).Where(x => x.CanRead && x.CanWrite))
             {
-                var orcAttribute = property.GetCustomAttribute(typeof(BnfPropertyAttribute)) as BnfPropertyAttribute;
-                if (orcAttribute == null)
+                var attributes = property.GetCustomAttributes();
+                if (attributes.OfType<BnfIgnoreAttribute>().Any())
                     continue;
 
-                if (map.Any(x => x.InheritanceLevel == level && x.Attribute.Key == orcAttribute.Key))
-                    throw new InvalidOperationException($"More than one property in type {type.FullName} has the same bnf key:{orcAttribute.Key}. Keys must be uniquely defined for the type");
-
-                map.Add(new BnfPropertyMap(property, orcAttribute, level));
+                map.Add(new BnfPropertyMap(property, attributes.OfType<BnfPropertyAttribute>().SingleOrDefault(), level));
             }
 
             return map;

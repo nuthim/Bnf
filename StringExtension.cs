@@ -6,7 +6,7 @@ namespace Bnf.Serialization
 {
     internal static class StringExtension
     {
-        public static string Escape(this string value, IDictionary<char, string> escapeCodes)
+        public static string Escape(this string value, IReadOnlyDictionary<char, string> escapeCodes)
         {
             var builder = new StringBuilder();
 

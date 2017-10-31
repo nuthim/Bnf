@@ -18,11 +18,10 @@ namespace Bnf.Serialization
             foreach (var map in fieldFactory.GetBnfFieldMappings(obj))
             {
                 var attribute = map.Attribute;
-                var property = map.Property;
+                if (attribute == null)
+                    continue;
 
-                var fieldName = attribute.Key;
-                if (string.IsNullOrEmpty(fieldName))
-                    errors.Add(new Exception($"Property {property.Name} has an empty bnf key. Bnf key is required to on a legit bnf property"));
+                var property = map.Property;
 
                 var fieldValue = property.GetValue(obj);
                 if (attribute.Required && fieldValue == null)
