@@ -9,7 +9,7 @@ namespace Bnf.Tests
     [TestClass]
     public class TimeSpanSerializationTests
     {
-        private static IEnumerable<BnfPropertyMap> mappings;
+        private static IEnumerable<PropertyMetaData> mappings;
         private static TimeSpanObj timeSpanObj;
         private static BnfSerializer serializer;
         private static TimeSpan timeNow = DateTime.Now.TimeOfDay;
@@ -18,7 +18,7 @@ namespace Bnf.Tests
         public static void Initialize(TestContext context)
         {
             timeSpanObj = new TimeSpanObj { DefaultFormatTime = timeNow, ExplicitFormatTime = timeNow, SettingsFormatTime = timeNow };
-            mappings = new BnfFieldMappingFactory().GetBnfFieldMappings(timeSpanObj);
+            mappings = new PropertyMetaDataFactory().GetPropertyMetaData(timeSpanObj);
             serializer = new BnfSerializer();
         }
 
@@ -30,7 +30,7 @@ namespace Bnf.Tests
             var result = serializer.Serialize(timeSpanObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(timeSpanObj.SettingsFormatTime));
-            var bnfField = mapping.Attribute.Key;
+            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
 
             Assert.IsTrue(result.Contains($"{bnfField}={timeNow.ToString()}"));
         }
@@ -44,8 +44,8 @@ namespace Bnf.Tests
             var result = serializer.Serialize(timeSpanObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(timeSpanObj.ExplicitFormatTime));
-            var bnfField = mapping.Attribute.Key;
-            var expectedValue = string.Format(mapping.Attribute.DataFormatString, timeNow);
+            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var expectedValue = string.Format(mapping.CustomBnfPropertyAttribute.DataFormatString, timeNow);
 
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
         }
@@ -59,7 +59,7 @@ namespace Bnf.Tests
             var result = serializer.Serialize(timeSpanObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(timeSpanObj.SettingsFormatTime));
-            var bnfField = mapping.Attribute.Key;
+            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
             var expectedValue = string.Format(serializer.Settings.GetFormatString(typeof(TimeSpan)), timeNow);
 
             serializer.Settings.SetFormatString(typeof(TimeSpan), null);
@@ -75,8 +75,8 @@ namespace Bnf.Tests
             var result = serializer.Serialize(timeSpanObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(timeSpanObj.ExplicitFormatTime));
-            var bnfField = mapping.Attribute.Key;
-            var expectedValue = string.Format(mapping.Attribute.DataFormatString, timeNow);
+            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var expectedValue = string.Format(mapping.CustomBnfPropertyAttribute.DataFormatString, timeNow);
 
             serializer.Settings.SetFormatString(typeof(TimeSpan), null);
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));

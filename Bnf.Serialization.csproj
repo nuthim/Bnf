@@ -40,18 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BnfArrayAttribute.cs" />
-    <Compile Include="BnfIgnoreAttribute.cs" />
-    <Compile Include="BnfPropertyAttribute.cs" />
-    <Compile Include="BnfPropertyMap.cs" />
+    <Compile Include="Attributes\BnfArrayAttribute.cs" />
+    <Compile Include="Attributes\BnfIgnoreAttribute.cs" />
+    <Compile Include="Attributes\BnfPropertyAttribute.cs" />
+    <Compile Include="Infrastructure\PropertyMetaData.cs" />
     <Compile Include="BnfSerializer.cs" />
-    <Compile Include="BnfFieldMappingFactory.cs" />
+    <Compile Include="Infrastructure\PropertyMetaDataFactory.cs" />
     <Compile Include="BnfSettings.cs" />
+    <Compile Include="Exceptions\BnfValidationException.cs" />
     <Compile Include="ExpandoObjectSerializableWrapper.cs" />
-    <Compile Include="KeyValuePairExtension.cs" />
-    <Compile Include="BnfValidator.cs" />
+    <Compile Include="Infrastructure\KeyValuePairExtension.cs" />
+    <Compile Include="Infrastructure\BnfValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringExtension.cs" />
+    <Compile Include="Infrastructure\StringExtension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

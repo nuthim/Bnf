@@ -3,7 +3,7 @@ using System.Linq;
 using System.Dynamic;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Collections;
+
 
 namespace Bnf.Serialization
 {
@@ -58,8 +58,8 @@ namespace Bnf.Serialization
 
                 var validator = new BnfValidator();
                 List<Exception> errors;
-                if (!validator.Validate(data, out errors))
-                    throw new InvalidOperationException("Invalid data", new AggregateException(errors));
+                if (!validator.Validate(data, Settings, out errors))
+                    throw new BnfValidationException("Invalid data", new AggregateException(errors));
 
                 pairs = GetKeyValuePairs(data);
             }
@@ -94,10 +94,10 @@ namespace Bnf.Serialization
         private IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(object data)
         {
             var fields = new List<KeyValuePair<string, string>>();
-            var fieldFactory = new BnfFieldMappingFactory();
-            foreach (var map in fieldFactory.GetBnfFieldMappings(data))
+            var fieldFactory = new PropertyMetaDataFactory();
+            foreach (var map in fieldFactory.GetPropertyMetaData(data).Where(x => x.IsReadWriteProperty && x.CustomBnfIgnoreAttribute == null))
             {
-                var bnfAttribute = map.Attribute;
+                var bnfAttribute = map.CustomBnfPropertyAttribute;
                 var propertyInfo = map.Property;
                 var propertyValue = propertyInfo.GetValue(data);
 

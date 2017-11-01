@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bnf.Serialization;
 using System.Collections.Generic;
 
@@ -8,7 +7,7 @@ namespace Bnf.Tests
     [TestClass]
     public class ArraySerializationTests
     {
-        private static IEnumerable<BnfPropertyMap> mappings;
+        private static IEnumerable<PropertyMetaData> mappings;
         private static BnfSerializer serializer;
 
 
@@ -49,13 +48,13 @@ namespace Bnf.Tests
 
     public class ContainerObj
     {
-        [BnfProperty(Key = "items")]
+        [BnfProperty(Key = "item_collection")]
         public ItemCollection Collection { get; set; }
     }
 
     public class ItemCollection
     {
-        [BnfProperty(Key = "items")]
+        [BnfArray(Key = "items_array", ElementName = "item#")]
         public Item[] Items { get; set; }
     }
 
