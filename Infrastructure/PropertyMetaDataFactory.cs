@@ -26,7 +26,9 @@ namespace Bnf.Serialization
             foreach (var property in type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
                 var attributes = property.GetCustomAttributes();
-                map.Add(new PropertyMetaData(type, property, level, attributes.OfType<BnfIgnoreAttribute>().SingleOrDefault(), attributes.OfType<BnfPropertyAttribute>().SingleOrDefault()));
+                map.Add(new PropertyMetaData(type, property, level,
+                    attributes.OfType<BnfIgnoreAttribute>().SingleOrDefault(),
+                    attributes.OfType<BnfPropertyAttribute>().SingleOrDefault()));
             }
 
             return map;

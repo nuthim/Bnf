@@ -29,7 +29,7 @@ namespace Bnf.Serialization
                 if (bnfPropertyAttribute != null)
                 {
                     if (metadata.CustomBnfIgnoreAttribute != null)
-                        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name}, {metadata.CustomBnfIgnoreAttribute.GetType().Name} can't be applied to the same property: {metadata.Property.Name}"));
+                        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name}, {metadata.CustomBnfIgnoreAttribute.GetType().Name} are applied to the same property: {metadata.Property.Name}"));
 
                     if (!metadata.IsReadWriteProperty)
                         errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name} is applied to non-readwrite property: {metadata.Property.Name}"));

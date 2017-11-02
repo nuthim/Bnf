@@ -14,6 +14,7 @@ namespace Bnf.Serialization
         private BnfSettings _settings;
         private const char FieldSeparator = '|';
         private const char KeyValueSeparator = '=';
+        private PropertyMetaDataFactory _metadataFactory = new PropertyMetaDataFactory();
         #endregion
 
         public BnfSettings Settings
@@ -46,25 +47,14 @@ namespace Bnf.Serialization
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            IEnumerable<KeyValuePair<string, string>> pairs;
-
             if (data.GetType().IsArray)
             {
-                var array = data as object[];
-                pairs = Serialize(array);
+                return SerializeIntl(data as object[], null, false);
             }
             else
             {
-
-                var validator = new BnfValidator();
-                List<Exception> errors;
-                if (!validator.Validate(data, Settings, out errors))
-                    throw new BnfValidationException("Invalid data", new AggregateException(errors));
-
-                pairs = GetKeyValuePairs(data);
+                return SerializeIntl(data);
             }
-
-            return $"{{{pairs.Join(KeyValueSeparator, FieldSeparator)}}}";
         }
 
         public ExpandoObject Deserialize(string bnf)
@@ -75,27 +65,40 @@ namespace Bnf.Serialization
 
         #region Helper Methods
 
-        private IEnumerable<KeyValuePair<string, string>> Serialize(object[] array)
+        private void Validate(object obj)
         {
-            var fields = new List<KeyValuePair<string, string>>();
+            var validator = new BnfValidator();
+            List<Exception> errors;
+            if (!validator.Validate(obj, Settings, out errors))
+                throw new BnfValidationException("Invalid data", new AggregateException(errors));
+        }
+
+        private string SerializeIntl(object[] array, string elementName, bool? indexed)
+        {
+            var pairs = new List<KeyValuePair<string, string>>();
             for (var index = 0; index < array.Length; index++)
             {
                 var item = array[index];
                 if (item == null)
                     continue;
 
-                var str = Serialize(item);
-                fields.Add(new KeyValuePair<string, string>($"{item.GetType().Name}{index+1}", str));
+                var str = item.GetType().IsArray ? SerializeIntl(item as object[], null, false) : SerializeIntl(item);
+                var fieldName = elementName ?? item.GetType().Name;
+                if (indexed.GetValueOrDefault(false))
+                    fieldName = $"{fieldName}{index + 1}";
+
+                pairs.Add(new KeyValuePair<string, string>($"{fieldName}", str));
             }
 
-            return fields.ToArray();
+            return $"{{{pairs.Join(KeyValueSeparator, FieldSeparator)}}}";
         }
 
-        private IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(object data)
+        private string SerializeIntl(object data)
         {
-            var fields = new List<KeyValuePair<string, string>>();
-            var fieldFactory = new PropertyMetaDataFactory();
-            foreach (var map in fieldFactory.GetPropertyMetaData(data).Where(x => x.IsReadWriteProperty && x.CustomBnfIgnoreAttribute == null))
+            Validate(data);
+
+            var pairs = new List<KeyValuePair<string, string>>();
+            foreach (var map in _metadataFactory.GetPropertyMetaData(data).Where(x => x.IsReadWriteProperty && x.CustomBnfIgnoreAttribute == null))
             {
                 var bnfAttribute = map.CustomBnfPropertyAttribute;
                 var propertyInfo = map.Property;
@@ -105,15 +108,17 @@ namespace Bnf.Serialization
                 if (propertyValue == null && nullText == null)
                     continue;
 
+                var isArray = propertyInfo.PropertyType.IsArray;
                 var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
                 var fieldValue = propertyValue == null ? nullText :
-                    !isPrimitive ? Serialize(propertyValue) :
+                    isArray ? SerializeIntl(propertyValue as object[], bnfAttribute?.ElementName, bnfAttribute?.Indexed) :
+                    !isPrimitive ? SerializeIntl(propertyValue) :
                     GetFormattedValue(propertyValue, bnfAttribute?.DataFormatString);
 
-                fields.Add(new KeyValuePair<string, string>(bnfAttribute?.Key ?? propertyInfo.Name, fieldValue));
+                pairs.Add(new KeyValuePair<string, string>(bnfAttribute?.Key ?? propertyInfo.Name, fieldValue));
             }
 
-            return fields.ToArray();
+            return $"{{{pairs.Join(KeyValueSeparator, FieldSeparator)}}}";
         }
 
         private string GetFormattedValue(object value, string formatString)

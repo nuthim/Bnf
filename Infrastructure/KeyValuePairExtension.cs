@@ -10,10 +10,13 @@ namespace Bnf.Serialization
             var builder = new StringBuilder();
             foreach (var pair in pairs)
             {
-                builder.Append($"{pair.Key}{keyvalueSeparator}{pair.Value} {fieldSeparator} ");
+                if (builder.Length > 0)
+                    builder.Append($" {fieldSeparator} ");
+
+                builder.Append($"{pair.Key}{keyvalueSeparator}{pair.Value}");
             }
 
-            return builder.ToString().Trim().TrimEnd(fieldSeparator);
+            return builder.ToString().Trim();
         }
     }
 }
