@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="Attributes\BnfIgnoreAttribute.cs" />
     <Compile Include="Attributes\BnfPropertyAttribute.cs" />
+    <Compile Include="Infrastructure\DeserializerImpl.cs" />
+    <Compile Include="Infrastructure\ExpandoObjectGenerator.cs" />
     <Compile Include="Infrastructure\PropertyMetaData.cs" />
     <Compile Include="BnfSerializer.cs" />
     <Compile Include="Infrastructure\PropertyMetaDataFactory.cs" />
@@ -52,6 +54,7 @@
     <Compile Include="Infrastructure\BnfValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\StringExtension.cs" />
+    <Compile Include="Infrastructure\SerializerImpl.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

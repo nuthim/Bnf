@@ -33,6 +33,7 @@ namespace Bnf.Tests
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.SettingsFormatDate));
             var bnfField = mapping.CustomBnfPropertyAttribute.Key;
 
+            var r = serializer.Deserialize<DateTimeObj>(result);
             Assert.IsTrue(result.Contains($"{bnfField}={dateNow.ToString()}"));
         }
 
@@ -47,6 +48,7 @@ namespace Bnf.Tests
             var bnfField = mapping.CustomBnfPropertyAttribute.Key;
             var expectedValue = string.Format(mapping.CustomBnfPropertyAttribute.DataFormatString, dateNow);
 
+            var r = serializer.Deserialize<DateTimeObj>(result);
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
         }
 

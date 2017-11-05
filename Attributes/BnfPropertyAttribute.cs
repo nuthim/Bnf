@@ -14,7 +14,5 @@ namespace Bnf.Serialization
         public string NullText { get; set; }
 
         public string ElementName { get; set; }
-
-        public bool Indexed { get; set; }
     }
 }

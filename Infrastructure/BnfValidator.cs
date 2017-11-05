@@ -22,6 +22,8 @@ namespace Bnf.Serialization
             errors = new List<Exception>();
             var metaFactory = new PropertyMetaDataFactory();
 
+            //TODO: Report multiple properties with the same bnf key on a given type
+
             foreach (var metadata in metaFactory.GetPropertyMetaData(obj))
             {
                 var bnfPropertyAttribute = metadata.CustomBnfPropertyAttribute;
