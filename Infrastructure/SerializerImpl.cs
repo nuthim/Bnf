@@ -98,7 +98,7 @@ namespace Bnf.Serialization.Infrastructure
                 var isArray = propertyInfo.PropertyType.IsArray;
                 var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
                 var fieldValue = propertyValue == null ? nullText :
-                    isArray ? SerializeIntl(propertyValue as object[], bnfAttribute?.ElementName) :
+                    isArray ? SerializeIntl((Array)propertyValue, bnfAttribute?.ElementName) :
                     !isPrimitive ? SerializeIntl(propertyValue) :
                     GetFormattedValue(propertyValue, bnfAttribute?.DataFormatString);
 

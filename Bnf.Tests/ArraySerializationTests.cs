@@ -17,7 +17,6 @@ namespace Bnf.Tests
             serializer = new BnfSerializer();
         }
 
-
         [TestMethod]
         public void ArrayNoContainerTest()
         {
@@ -30,17 +29,31 @@ namespace Bnf.Tests
             Assert.AreEqual(new ArrayComparer().Compare(array, deserializedArray), 0);
         }
 
-        //[TestMethod]
-        //public void ArrayPrimitiveTest()
-        //{
-        //    var array = new[] { 1, 2, 3, 4, 5 };
-        //    var result = serializer.Serialize(array);
+        [TestMethod]
+        public void ArrayIntTest()
+        {
+            var array = new[] { 1, 2, 3, 4, 5 };
+            var itemCollection = new ItemCollection { IntArray = array };
+            var result = serializer.Serialize(itemCollection);
 
-        //    Assert.AreEqual("{ItemA1={id=1 | name=A} | ItemA2={id=2 | name=B}}", result, false);
-        //    var deserializedArray = serializer.Deserialize<int[]>(result);
+            Assert.AreEqual("{int_item_array={int1=1 | int2=2 | int3=3 | int4=4 | int5=5}}", result, false);
+            var deserializedArray = serializer.Deserialize<ItemCollection>(result);
 
-        //    Assert.AreEqual(new ArrayComparer().Compare(array, deserializedArray), 0);
-        //}
+            Assert.AreEqual(itemCollection, deserializedArray);
+        }
+
+        [TestMethod]
+        public void ArrayStringTest()
+        {
+            var array = new[] { "Mithun", "Basak", "is", "great" };
+            var itemCollection = new ItemCollection { StringArray = array };
+            var result = serializer.Serialize(itemCollection);
+
+            Assert.AreEqual("{string_item_array={enum1=Mithun | enum2=Basak | enum3=is | enum4=great}}", result, false);
+            var deserializedArray = serializer.Deserialize<ItemCollection>(result);
+
+            Assert.AreEqual(itemCollection, deserializedArray);
+        }
 
         [TestMethod]
         public void ArrayAsNoAttributePropertyTest()
@@ -55,7 +68,6 @@ namespace Bnf.Tests
 
             Assert.AreEqual(itemCollection, deserialized);
         }
-
 
         [TestMethod]
         public void ArrayAsNamedPropertyTest()
@@ -151,6 +163,12 @@ namespace Bnf.Tests
 
         [BnfProperty(Key = "nonnamed_item_array")]
         public ItemA[] NonNamedItemArray { get; set; }
+
+        [BnfProperty(Key = "int_item_array", ElementName = "int")]
+        public int[] IntArray { get; set; }
+
+        [BnfProperty(Key = "string_item_array", ElementName = "enum")]
+        public string[] StringArray { get; set; }
 
         public override bool Equals(object obj)
         {

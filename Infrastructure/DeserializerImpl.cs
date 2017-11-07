@@ -101,30 +101,33 @@ namespace Bnf.Serialization.Infrastructure
 
         private T[] DeserializeArrayIntl<T>(IDictionary<string, object> pairs, BnfPropertyAttribute bnfAttribute)
         {
-            var list = new List<T>();
+            var itemType = typeof(T);
+            var list = new List<T>(pairs.Count);
 
-            string expectedKey;
-            if (bnfAttribute != null)
-                expectedKey = bnfAttribute.Key;
-            else
-                expectedKey = typeof(T).FullName;
+            string expectedKey = bnfAttribute?.ElementName;
+
+            if (string.IsNullOrWhiteSpace(expectedKey))
+            {
+                if (itemType != typeof(object))
+                    expectedKey = itemType.FullName;
+                else
+                    throw new InvalidOperationException("");
+            }
 
             foreach (var item in pairs)
             {
-                var match = Regex.Match(item.Key, @"^(?<key>[\.A-Za-z]+)(?<index>\d+)$");
+                var match = Regex.Match(item.Key, $"^{expectedKey}(?<index>\\d+)$");
                 if (!match.Success)
                     throw new InvalidOperationException("");
 
-                var serializedName = match.Groups["key"].Value;
-                var serializedIndex = match.Groups["index"].Value;
+                var serializedIndex = int.Parse(match.Groups["index"].Value);
 
-                if (string.Compare(serializedName, expectedKey) != 0 && typeof(T) == typeof(object))
-                {
-                    throw new Exception();
-                }
+                var data = pairs[item.Key];
+                var expando = data as ExpandoObject;
 
-                var value = (T)DeserializeIntl((ExpandoObject)pairs[item.Key], typeof(T), null);
-                list.Add(value);
+                var isPrimitive = !itemType.IsClass || itemType == typeof(string);
+                var value = isPrimitive ? TypeDescriptor.GetConverter(itemType).ConvertFrom(data) : DeserializeIntl((ExpandoObject)data, itemType, null);
+                list.Insert(serializedIndex - 1, (T)value);
             }
 
             return list.ToArray();
