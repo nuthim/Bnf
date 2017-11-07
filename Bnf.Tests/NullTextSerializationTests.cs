@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bnf.Serialization;
+using Bnf.Serialization.Attributes;
 using System.Collections.Generic;
+using Bnf.Serialization.Infrastructure;
 
 namespace Bnf.Tests
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Exceptions
 {
     public class BnfValidationException : Exception
     {

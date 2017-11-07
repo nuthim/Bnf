@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Infrastructure
 {
     internal static class KeyValuePairExtension
     {

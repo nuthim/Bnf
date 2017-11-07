@@ -2,8 +2,9 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using Bnf.Serialization.Attributes;
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Infrastructure
 {
     public class PropertyMetaDataFactory
     {

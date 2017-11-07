@@ -2,6 +2,7 @@
 using Bnf.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using Bnf.Serialization.Attributes;
 
 namespace Bnf.Tests
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class BnfPropertyAttribute : Attribute

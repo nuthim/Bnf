@@ -1,7 +1,8 @@
 using System;
 using System.Reflection;
+using Bnf.Serialization.Attributes;
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Infrastructure
 {
     public class PropertyMetaData
     {

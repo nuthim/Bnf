@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Dynamic;
 using Bnf.Serialization.Infrastructure;
 
 namespace Bnf.Serialization

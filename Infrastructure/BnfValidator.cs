@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 
-namespace Bnf.Serialization
+namespace Bnf.Serialization.Infrastructure
 {
     public class BnfValidator
     {
