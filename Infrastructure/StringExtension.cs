@@ -27,5 +27,16 @@ namespace Bnf.Serialization.Infrastructure
 
             return builder.ToString();
         }
+
+        public static string Unescape(this string value, IReadOnlyDictionary<string, char> unescapeCodes)
+        {
+            if (unescapeCodes == null || !unescapeCodes.Any())
+                return value;
+
+            foreach (var code in unescapeCodes)
+                value = value.Replace(code.Key, code.Value.ToString());
+
+            return value;
+        }
     }
 }

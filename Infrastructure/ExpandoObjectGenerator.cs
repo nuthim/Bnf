@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Text.RegularExpressions;
 
@@ -9,9 +10,15 @@ namespace Bnf.Serialization.Infrastructure
     {
         #region Fields
         private const string ComplexTypePattern = "{(?<value>.*)}"; //Combination of key/value pairs enclosed in braces; {...}.
+        private readonly ReadOnlyDictionary<string, char> _unescapeCodes;
         #endregion
 
         #region Properties
+
+        public BnfSettings Settings
+        {
+            get;
+        }
 
         public char FieldSeparator
         {
@@ -27,8 +34,10 @@ namespace Bnf.Serialization.Infrastructure
 
         #region Constructor
 
-        public ExpandoObjectGenerator(char fieldSeparator, char keyValueSeparator)
+        public ExpandoObjectGenerator(BnfSettings settings, char fieldSeparator, char keyValueSeparator)
         {
+            Settings = settings;
+            _unescapeCodes = new ReadOnlyDictionary<string, char>(GetUnescapeCodes());
             FieldSeparator = fieldSeparator;
             KeyValueSeparator = keyValueSeparator;
         }
@@ -49,7 +58,7 @@ namespace Bnf.Serialization.Infrastructure
                 var propertyName = items[0].Trim();
                 var propertyValue = items[1].Trim();
 
-                AddProperty(obj, propertyName, !IsComplexType(propertyValue, out fieldValue) ? (object)propertyValue : CreateExpandoObject(propertyValue));
+                AddProperty(obj, propertyName, !IsComplexType(propertyValue, out fieldValue) ? (object)propertyValue.Unescape(_unescapeCodes) : CreateExpandoObject(propertyValue));
             }
 
             return obj;
@@ -72,8 +81,14 @@ namespace Bnf.Serialization.Infrastructure
             var braceCount = 0;
             var word = new List<char>();
             var properties = new List<string>();
-            foreach (var item in value)
+            var unescapeCodes = new ReadOnlyDictionary<string, char>(GetUnescapeCodes());
+            
+
+            int index = 0;
+            while(index < value.Length)
             {
+                var item = value[index];
+
                 switch (item)
                 {
                     case '{':
@@ -104,6 +119,8 @@ namespace Bnf.Serialization.Infrastructure
                         stack.Push(item);
                         break;
                 }
+
+                index ++;
             }
 
             if (stack.Count > 0)
@@ -128,6 +145,16 @@ namespace Bnf.Serialization.Infrastructure
             var match = Regex.Match(input, ComplexTypePattern);
             value = match.Groups["value"].Value;
             return true;
+        }
+
+        private IDictionary<string, char> GetUnescapeCodes()
+        {
+            var codes = new Dictionary<string, char>();
+
+            foreach (var item in Settings.EscapeCodes)
+                codes.Add(item.Value, item.Key);
+
+            return codes;
         }
 
         #endregion

@@ -17,9 +17,10 @@ namespace Bnf.Serialization
         public BnfSettings()
         {
             _escapeCodes = new Dictionary<char, string>();
-            _escapeCodes.Add('{', @"{{");
-            _escapeCodes.Add('}', @"}}");
-            _escapeCodes.Add('|', @"||");
+            _escapeCodes.Add('{', @"\[");
+            _escapeCodes.Add('}', @"\]");
+            _escapeCodes.Add('\\', @"\\");
+            _escapeCodes.Add('|', @"\/");
 
             _formatStrings = new Dictionary<Type, string>();
         }

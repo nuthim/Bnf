@@ -43,7 +43,7 @@ namespace Bnf.Serialization.Infrastructure
             Settings = settings;
             FieldSeparator = fieldSeparator;
             KeyValueSeparator = keyValueSeparator;
-            _expandoGenerator = new ExpandoObjectGenerator(fieldSeparator, keyValueSeparator);
+            _expandoGenerator = new ExpandoObjectGenerator(settings, fieldSeparator, keyValueSeparator);
         }
 
         #endregion
