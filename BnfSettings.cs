@@ -66,30 +66,6 @@ namespace Bnf.Serialization
             _formatStrings[type] = formatString.Trim();
         }
 
-        public string GetEscapeCode(char escapeChar)
-        {
-            string escapeCode;
-            _escapeCodes.TryGetValue(escapeChar, out escapeCode);
-            return escapeCode;
-        }
-
-        public void SetEscapeCode(char escapeChar, string escapeCode)
-        {
-            if (escapeCode == null)
-            {
-                _escapeCodes.Remove(escapeChar);
-                return;
-            }
-
-
-            //TODO: Validate the escape code
-            var code = escapeCode.Trim();
-            if (code.Length == 1 && code == escapeChar.ToString())
-                throw new ArgumentException("Escape code can't be same as the character to be escaped", nameof(escapeCode));
-
-            _escapeCodes[escapeChar] = escapeCode.Trim();
-        }
-
         #endregion
     }
 }
