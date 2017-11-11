@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using Bnf.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Bnf.Serialization.Attributes;
 using Bnf.Serialization.Infrastructure;
+using System.Runtime.Serialization;
 
 namespace Bnf.Tests
 {
@@ -28,6 +28,12 @@ namespace Bnf.Tests
         {
             var result = serializer.Serialize(inclusionObj);
 
+            //Properties not a data member should use the property name 
+            var idMapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.Id));
+            Assert.IsTrue(idMapping != null);
+            Assert.IsFalse(result.Contains($"{idMapping.Property.Name}={inclusionObj.Id}"));
+
+
             //Read-Write properties marked to be explicity ignored shouldn't be part of serialization
             var mapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.Password));
             Assert.IsFalse(result.Contains(mapping.Property.Name));
@@ -35,6 +41,9 @@ namespace Bnf.Tests
             //Only Read-Write properties should be part of serialization
             mapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.GetterOnly));
             Assert.IsFalse(result.Contains(mapping.Property.Name));
+
+            var deserialized = serializer.Deserialize<InclusionObj>(result);
+            Assert.AreEqual(inclusionObj, deserialized);
         }
 
 
@@ -43,20 +52,18 @@ namespace Bnf.Tests
         {
             var result = serializer.Serialize(inclusionObj);
 
-            //Properties not having a key name defined should use the property name 
-            var idMapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.Id));
-            Assert.IsTrue(idMapping != null);
-            Assert.IsTrue(result.Contains($"{idMapping.Property.Name}={inclusionObj.Id}"));
-
-            //Properties decorated with bnf attribute and key name should use the key 
+            //Properties decorated with DataMember attribute and name should use the name 
             var firstMapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.FirstName));
             Assert.IsTrue(firstMapping != null);
-            Assert.IsTrue(result.Contains($"{firstMapping.CustomBnfPropertyAttribute.Key}={inclusionObj.FirstName}"));
+            Assert.IsTrue(result.Contains($"{firstMapping.KeyName}={inclusionObj.FirstName}"));
 
-            //Properties decorated with bnf attribute but no key name should use property name 
+            //Properties decorated with DataMember attribute but no  name should use property name 
             var lastMapping = mappings.SingleOrDefault(x => x.Property.Name == nameof(inclusionObj.LastName));
             Assert.IsTrue(lastMapping != null);
             Assert.IsTrue(result.Contains($"{lastMapping.Property.Name}={inclusionObj.LastName}"));
+
+            var deserialized = serializer.Deserialize<InclusionObj>(result);
+            Assert.AreEqual(inclusionObj, deserialized);
         }
 
 
@@ -64,18 +71,40 @@ namespace Bnf.Tests
         {
             public int Id { get; set; }
 
-            [BnfProperty(Key = "first_name")]
+            [DataMember(Name = "first_name")]
             public string FirstName { get; set; }
 
-            [BnfProperty]
+            [DataMember]
             public string LastName { get; set; }
 
             public string FullName => $"{FirstName} {LastName}";
 
-            [BnfIgnore]
+            [IgnoreDataMember]
             public string Password { get; set; }
 
             public string GetterOnly => "Getter only";
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                    return false;
+
+                if (ReferenceEquals(this, obj))
+                    return true;
+
+                var other = obj as InclusionObj;
+                if (other == null)
+                    return false;
+
+                return
+                    FirstName == other.FirstName &&
+                    LastName == other.LastName;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
         }
     }
 }

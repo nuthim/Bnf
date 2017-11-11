@@ -27,7 +27,7 @@ namespace Bnf.Tests
         {
             var result = serializer.Serialize(stringObj);
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.ShortName));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var bnfField = mapping.KeyName;
             var expectedValue = @"Mi\][[\/\\/]]\]th\[=u\\/\/\/n;[]";
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 

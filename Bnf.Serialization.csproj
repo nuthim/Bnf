@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,16 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\BnfIgnoreAttribute.cs" />
-    <Compile Include="Attributes\BnfPropertyAttribute.cs" />
+    <Compile Include="Attributes\DataFormatAttribute.cs" />
     <Compile Include="Infrastructure\DeserializerImpl.cs" />
+    <Compile Include="Infrastructure\TypeHelper.cs" />
     <Compile Include="Infrastructure\ExpandoObjectGenerator.cs" />
     <Compile Include="Infrastructure\PropertyMetaData.cs" />
     <Compile Include="BnfSerializer.cs" />
     <Compile Include="Infrastructure\PropertyMetaDataFactory.cs" />
     <Compile Include="BnfSettings.cs" />
     <Compile Include="Exceptions\BnfValidationException.cs" />
-    <Compile Include="ExpandoObjectSerializableWrapper.cs" />
     <Compile Include="Infrastructure\KeyValuePairExtension.cs" />
     <Compile Include="Infrastructure\BnfValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

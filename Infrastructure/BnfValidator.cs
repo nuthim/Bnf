@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-
+using System.Collections;
 
 namespace Bnf.Serialization.Infrastructure
 {
@@ -26,25 +26,27 @@ namespace Bnf.Serialization.Infrastructure
 
             foreach (var metadata in metaFactory.GetPropertyMetaData(obj))
             {
-                var bnfPropertyAttribute = metadata.CustomBnfPropertyAttribute;
+                if (metadata.Property.GetIndexParameters().Any())
+                    continue;
 
-                if (bnfPropertyAttribute != null)
+                var isEnumerable = typeof(IEnumerable).IsAssignableFrom(metadata.Property.PropertyType);
+
+                var fieldValue = metadata.Property.GetValue(obj);
+                if (metadata.IsRequired && fieldValue == null)
                 {
-                    if (metadata.CustomBnfIgnoreAttribute != null)
-                        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name}, {metadata.CustomBnfIgnoreAttribute.GetType().Name} are applied to the same property: {metadata.Property.Name}"));
-
-                    if (!metadata.IsReadWriteProperty)
-                        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name} is applied to non-readwrite property: {metadata.Property.Name}"));
-                    else
-                    {
-                        var fieldValue = metadata.Property.GetValue(obj);
-                        if (bnfPropertyAttribute.Required && fieldValue == null)
-                        {
-                            if (bnfPropertyAttribute.NullText == null && settings.NullText == null)
-                                errors.Add(new Exception($"Detected null value for required bnf field - {metadata.Property.Name}"));
-                        }
-                    }
+                    if (metadata.NullText == null && settings.NullText == null)
+                        errors.Add(new Exception($"Detected null value for required bnf field - {metadata.Property.Name}"));
                 }
+
+                //if (bnfPropertyAttribute != null)
+                //{
+                //    if (!metadata.IsReadWriteProperty)
+                //        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name} is applied to non-readwrite property: {metadata.Property.Name}"));
+                //    else
+                //    {
+                        
+                //    }
+                //}
             }
 
             return !errors.Any();

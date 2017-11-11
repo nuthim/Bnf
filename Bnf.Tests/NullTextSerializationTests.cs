@@ -4,6 +4,8 @@ using Bnf.Serialization;
 using Bnf.Serialization.Attributes;
 using System.Collections.Generic;
 using Bnf.Serialization.Infrastructure;
+using System.Runtime.Serialization;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bnf.Tests
 {
@@ -26,16 +28,17 @@ namespace Bnf.Tests
         [TestMethod]
         public void ExplicitNullTextTest()
         {
-            //Null Text set both globally to null (default) but is set to some value on property attribute. In that case the property setting should take effect
+            //Null Text set globally to null (default) but is set to some value on property attribute. In that case the property setting should take effect
 
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.NullNameSet));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
-            var expectedValue = mapping.CustomBnfPropertyAttribute.NullText;
+            var bnfField = mapping.KeyName;
+            var expectedValue = mapping.NullText;
 
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
         }
+
 
         [TestMethod]
         public void SettingsNullTextUnsetTest()
@@ -45,7 +48,7 @@ namespace Bnf.Tests
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.NullNameUnset));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var bnfField = mapping.KeyName;
             Assert.IsFalse(result.Contains($"{bnfField}"));
         }
 
@@ -58,7 +61,7 @@ namespace Bnf.Tests
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.NullNameUnset));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var bnfField = mapping.KeyName;
             var expectedValue = serializer.Settings.NullText;
 
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
@@ -75,8 +78,8 @@ namespace Bnf.Tests
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.NullNameSet));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
-            var expectedValue = mapping.CustomBnfPropertyAttribute.NullText;
+            var bnfField = mapping.KeyName;
+            var expectedValue = mapping.NullText;
 
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
         }
@@ -90,7 +93,7 @@ namespace Bnf.Tests
             var result = serializer.Serialize(stringObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(stringObj.NullNameSetNull));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var bnfField = mapping.KeyName;
 
             Assert.IsFalse(result.Contains($"{bnfField}"));
         }
@@ -99,16 +102,18 @@ namespace Bnf.Tests
 
     public class StringObj
     {
-        [BnfProperty(Key = "short_name")]
+        [DataMember(Name = "short_name")]
         public string ShortName { get; set; }
 
-        [BnfProperty(Key = "null_name_set", NullText = "n/a")]
+        [DataMember(Name = "null_name_set")]
+        [DataFormat(NullText = "n/a")]
         public string NullNameSet { get; set; }
 
-        [BnfProperty(Key = "null_name_unset")]
+        [DataMember(Name = "null_name_unset")]
         public string NullNameUnset { get; set; }
 
-        [BnfProperty(Key = "null_name_set_null", NullText = null)]
+        [DataMember(Name = "null_name_set_null")]
+        [DataFormat(NullText = null)]
         public string NullNameSetNull { get; set; }
     }
 }

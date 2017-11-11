@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Collections.Generic;
 using Bnf.Serialization.Exceptions;
-
+using System.Collections;
+using System.Runtime.Serialization;
+using System.Reflection;
 
 namespace Bnf.Serialization.Infrastructure
 {
@@ -48,9 +50,9 @@ namespace Bnf.Serialization.Infrastructure
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            if (data.GetType().IsArray)
+            if (TypeHelper.IsEnumerable(data.GetType()))
             {
-                return SerializeIntl((Array)data, null);
+                return SerializeIntl((IList)data, null);
             }
             else
             {
@@ -60,20 +62,23 @@ namespace Bnf.Serialization.Infrastructure
 
         #region Helper Methods
 
-        private string SerializeIntl(Array array, string elementName)
+        private string SerializeIntl(IList array, string elementName)
         {
             var pairs = new List<KeyValuePair<string, string>>();
-            for (var index = 0; index < array.Length; index++)
+            for (var index = 0; index < array.Count; index++)
             {
-                var item = array.GetValue(index);
+                var item = array[index];
                 if (item == null)
                     continue;
 
                 var itemType = item.GetType();
-                var isPrimitive = !itemType.IsClass || itemType == typeof(string);
 
-                var value = isPrimitive ? GetFormattedValue(item, null) : item.GetType().IsArray ? SerializeIntl((Array)item, null) : SerializeIntl(item);
-                var fieldName = $"{elementName ?? item.GetType().FullName}{index + 1}";
+                var value = 
+                    TypeHelper.IsPrimitive(itemType) ? GetFormattedValue(item, null) : 
+                    TypeHelper.IsEnumerable(itemType) ? SerializeIntl((IList)item, null) : 
+                    SerializeIntl(item);
+
+                var fieldName = $"{elementName ?? itemType.FullName}{index + 1}";
                 pairs.Add(new KeyValuePair<string, string>($"{fieldName}", value));
             }
 
@@ -85,24 +90,26 @@ namespace Bnf.Serialization.Infrastructure
             Validate(data);
 
             var pairs = new List<KeyValuePair<string, string>>();
-            foreach (var map in _metadataFactory.GetPropertyMetaData(data).Where(x => x.IsReadWriteProperty && x.CustomBnfIgnoreAttribute == null))
+            foreach (var metadata in _metadataFactory.GetPropertyMetaData(data).Where(x => x.Exclude == false))
             {
-                var bnfAttribute = map.CustomBnfPropertyAttribute;
-                var propertyInfo = map.Property;
-                var propertyValue = propertyInfo.GetValue(data);
+                var propertyValue = metadata.Property.GetValue(data);
+                var propertyType = metadata.Property.PropertyType;
 
-                var nullText = bnfAttribute?.NullText ?? Settings.NullText;
+                var nullText = metadata?.NullText ?? Settings.NullText;
                 if (propertyValue == null && nullText == null)
                     continue;
 
-                var isArray = propertyInfo.PropertyType.IsArray;
-                var isPrimitive = !propertyInfo.PropertyType.IsClass || propertyInfo.PropertyType == typeof(string);
-                var fieldValue = propertyValue == null ? nullText :
-                    isArray ? SerializeIntl((Array)propertyValue, bnfAttribute?.ElementName) :
-                    !isPrimitive ? SerializeIntl(propertyValue) :
-                    GetFormattedValue(propertyValue, bnfAttribute?.DataFormatString);
+                if (propertyType.IsValueType && propertyValue.Equals(metadata.DefaultValue) && !metadata.EmitDefaultValue)
+                    continue;
 
-                pairs.Add(new KeyValuePair<string, string>(bnfAttribute?.Key ?? propertyInfo.Name, fieldValue));
+                var fieldValue = 
+                    propertyValue == null ? nullText :
+                    metadata.IsEnum ? GetEnumValue(propertyValue) :
+                    metadata.IsPrimitive ? GetFormattedValue(propertyValue, metadata.DataFormatString ?? Settings.GetFormatString(propertyType)) :
+                    metadata.IsEnumerable ? SerializeIntl((IList)propertyValue, metadata.ItemName) :
+                    SerializeIntl(propertyValue);
+
+                pairs.Add(new KeyValuePair<string, string>(metadata.KeyName, fieldValue));
             }
 
             return $"{{{pairs.Join(KeyValueSeparator, FieldSeparator)}}}";
@@ -114,11 +121,21 @@ namespace Bnf.Serialization.Infrastructure
             if (type == typeof(string))
                 value = value.ToString().Escape(Settings.EscapeCodes);
 
-            var format = formatString ?? Settings.GetFormatString(type);
-            if (format == null)
-                return string.Format("{0}", value);
+            if (formatString == null)
+                return value.ToString();
 
-            return string.Format(format, value);
+            var method = type.GetMethod("ToString", new[] { typeof(string)});
+            return (string)method.Invoke(value, new[] { formatString });
+        }
+
+        private string GetEnumValue(object propertyValue)
+        {
+            var enumType = propertyValue.GetType();
+            var enumStr = propertyValue.ToString();
+            var obj = Enum.Parse(enumType, enumStr);
+            var enumAttribute = enumType.GetMember(enumStr)[0].GetCustomAttribute<EnumMemberAttribute>();
+
+            return (enumAttribute?.Value ?? enumStr).Escape(Settings.EscapeCodes);
         }
 
         private void Validate(object obj)

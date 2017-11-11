@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
-using Bnf.Serialization.Attributes;
+
 
 namespace Bnf.Serialization.Infrastructure
 {
@@ -63,49 +63,50 @@ namespace Bnf.Serialization.Infrastructure
 
         #region Helper Methods
 
-        private object DeserializeIntl(ExpandoObject expandoObject, Type type, BnfPropertyAttribute propertyAttribute)
+        private object DeserializeIntl(ExpandoObject expandoObject, Type type, string elementName)
         {
             var pairs = expandoObject as IDictionary<string, object>;
 
-            if (type.IsArray)
+            if (TypeHelper.IsEnumerable(type))
             {
-                var itemType = type.GetElementType();
+                var itemType = type.IsGenericType ? type.GetGenericArguments()?.FirstOrDefault() : type.GetElementType();
+                if (itemType == null)
+                    itemType = type.BaseType.IsGenericType ? type.BaseType.GetGenericArguments()?.FirstOrDefault() : type.BaseType.GetElementType();
+
                 if (itemType == typeof(object))
                     throw new NotSupportedException("Deserializing object[] is not supported");
 
                 MethodInfo method = GetType().GetMethod("DeserializeArrayIntl", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(itemType);
-                var value = method.Invoke(this, new object[] { pairs, propertyAttribute });
-                return value;
+                var value = method.Invoke(this, new object[] { pairs, elementName });
+
+                return type.IsArray ? value : Activator.CreateInstance(type, value);
             }
 
             var result = FormatterServices.GetUninitializedObject(type);
 
-            foreach (var map in _metadataFactory.GetPropertyMetaData(result).Where(x => x.IsReadWriteProperty && x.CustomBnfIgnoreAttribute == null))
+            foreach (var metadata in _metadataFactory.GetPropertyMetaData(result).Where(x => x.Exclude == false))
             {
-                var bnfAttribute = map.CustomBnfPropertyAttribute;
-                var propertyInfo = map.Property;
+                var propertyInfo = metadata.Property;
 
-                var key = bnfAttribute?.Key ?? propertyInfo.Name;
-                if (!pairs.ContainsKey(key))
+                if (!pairs.ContainsKey(metadata.KeyName))
                     continue;
 
-                var data = pairs[key];
+                var data = pairs[metadata.KeyName];
                 var expando = data as ExpandoObject;
 
-                MethodBase method = MethodBase.GetCurrentMethod();
-                var propertyValue = expando != null ? method.Invoke(this, new object[] { expando, propertyInfo.PropertyType, bnfAttribute }) : TypeDescriptor.GetConverter(propertyInfo.PropertyType).ConvertFrom(data);
+                var propertyValue = expando != null ? DeserializeIntl(expando, propertyInfo.PropertyType, metadata.ItemName) : DeserializeValue(data.ToString(), metadata.DataFormatString ?? Settings.GetFormatString(propertyInfo.PropertyType), propertyInfo.PropertyType);
                 propertyInfo.SetValue(result, propertyValue);
             }
 
             return result;
         }
 
-        private T[] DeserializeArrayIntl<T>(IDictionary<string, object> pairs, BnfPropertyAttribute bnfAttribute)
+        private T[] DeserializeArrayIntl<T>(IDictionary<string, object> pairs, string elementName)
         {
             var itemType = typeof(T);
             var list = new List<T>(pairs.Count);
 
-            string expectedKey = bnfAttribute?.ElementName;
+            string expectedKey = elementName;
 
             if (string.IsNullOrWhiteSpace(expectedKey))
             {
@@ -134,6 +135,50 @@ namespace Bnf.Serialization.Infrastructure
             return list.ToArray();
         }
 
+        private object DeserializeValue(string strValue, string formatString, Type resultType)
+        {
+            if (resultType.IsEnum)
+                return GetEnumValue(strValue, resultType);
+
+            if (string.IsNullOrEmpty(formatString))
+                return TypeDescriptor.GetConverter(resultType).ConvertFrom(strValue);
+            else
+            {
+                if (resultType == typeof(TimeSpan))
+                {
+                    TimeSpan timeSpan;
+                    TimeSpan.TryParseExact(strValue, formatString, null, out timeSpan);
+                    return timeSpan;
+                }
+
+                if (resultType == typeof(DateTime))
+                {
+                    DateTime dateTime;
+                    DateTime.TryParseExact(strValue, formatString, null, System.Globalization.DateTimeStyles.None, out dateTime);
+                    return dateTime;
+                }
+            }
+
+            return TypeDescriptor.GetConverter(resultType).ConvertFrom(strValue);
+        }
+
+        private object GetEnumValue(string strValue, Type enumType)
+        {
+            if (Enum.IsDefined(enumType, strValue))
+                return Enum.Parse(enumType, strValue);
+
+            foreach (var member in enumType.GetMembers())
+            {
+                var enumAttribute = member.GetCustomAttribute<EnumMemberAttribute>();
+                if (enumAttribute == null)
+                    continue;
+
+                if (strValue == enumAttribute.Value)
+                    return Enum.Parse(enumType, member.Name);
+            }
+
+            throw new InvalidCastException();
+        }
         #endregion
     }
 }

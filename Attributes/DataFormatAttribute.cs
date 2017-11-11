@@ -3,16 +3,10 @@
 namespace Bnf.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class BnfPropertyAttribute : Attribute
+    public class DataFormatAttribute : Attribute
     {
-        public string Key { get; set; }
-
-        public bool Required { get; set; }
-
         public string DataFormatString { get; set; }
 
         public string NullText { get; set; }
-
-        public string ElementName { get; set; }
     }
 }

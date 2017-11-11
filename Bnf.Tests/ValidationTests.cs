@@ -5,6 +5,7 @@ using Bnf.Serialization.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bnf.Serialization.Exceptions;
 using Bnf.Serialization.Infrastructure;
+using System.Runtime.Serialization;
 
 namespace Bnf.Tests
 {
@@ -62,7 +63,7 @@ namespace Bnf.Tests
         {
             public string FirstName { get; set; }
 
-            [BnfProperty(Required = true)]
+            [DataMember(IsRequired = true)]
             public string LastName { get; set; }
         }
     }

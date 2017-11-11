@@ -5,6 +5,7 @@ using Bnf.Serialization;
 using System.Collections.Generic;
 using Bnf.Serialization.Attributes;
 using Bnf.Serialization.Infrastructure;
+using System.Runtime.Serialization;
 
 namespace Bnf.Tests
 {
@@ -32,12 +33,13 @@ namespace Bnf.Tests
             var result = serializer.Serialize(dateTimeObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.SettingsFormatDate));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
+            var bnfField = mapping.KeyName;
 
-            var r = serializer.Deserialize<DateTimeObj>(result);
             Assert.IsTrue(result.Contains($"{bnfField}={dateNow.ToString()}"));
-        }
 
+            var deserialized = serializer.Deserialize<DateTimeObj>(result);
+            Assert.AreEqual(dateTimeObj, deserialized);
+        }
 
         [TestMethod]
         public void ExplicitDateFormatTest()
@@ -46,11 +48,13 @@ namespace Bnf.Tests
             var result = serializer.Serialize(dateTimeObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.ExplicitFormatDate));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
-            var expectedValue = string.Format(mapping.CustomBnfPropertyAttribute.DataFormatString, dateNow);
+            var bnfField = mapping.KeyName;
+            var expectedValue = dateNow.ToString(mapping.DataFormatString);
 
-            var r = serializer.Deserialize<DateTimeObj>(result);
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
+
+            var deserialized = serializer.Deserialize<DateTimeObj>(result);
+            Assert.AreEqual(dateTimeObj, deserialized);
         }
 
         [TestMethod]
@@ -58,15 +62,19 @@ namespace Bnf.Tests
         {
             //Global format is set but format is not set explicitly on the property
 
-            serializer.Settings.SetFormatString(typeof(DateTime), "{0:dd MM yyyy}");
+            serializer.Settings.SetFormatString(typeof(DateTime), "dd MM yyyy");
             var result = serializer.Serialize(dateTimeObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.SettingsFormatDate));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
-            var expectedValue = string.Format(serializer.Settings.GetFormatString(typeof(DateTime)), dateNow);
+            var bnfField = mapping.KeyName;
+            var expectedValue = dateNow.ToString(serializer.Settings.GetFormatString(typeof(DateTime)));
+
+            Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
+
+            var deserialized = serializer.Deserialize<DateTimeObj>(result);
+            Assert.AreEqual(dateTimeObj, deserialized);
 
             serializer.Settings.SetFormatString(typeof(DateTime), null);
-            Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
         }
 
         [TestMethod]
@@ -74,27 +82,75 @@ namespace Bnf.Tests
         {
             //Format set both globally and on the property attribute. In that case the property setting should take effect
 
-            serializer.Settings.SetFormatString(typeof(DateTime), "{0:dd MM yyyy}");
+            serializer.Settings.SetFormatString(typeof(DateTime), "dd MM yyyy");
             var result = serializer.Serialize(dateTimeObj);
 
             var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.ExplicitFormatDate));
-            var bnfField = mapping.CustomBnfPropertyAttribute.Key;
-            var expectedValue = string.Format(mapping.CustomBnfPropertyAttribute.DataFormatString, dateNow);
+            var bnfField = mapping.KeyName;
+            var expectedValue = dateNow.ToString(mapping.DataFormatString);
+
+            Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
+
+            var deserialized = serializer.Deserialize<DateTimeObj>(result);
+            Assert.AreEqual(dateTimeObj, deserialized);
 
             serializer.Settings.SetFormatString(typeof(DateTime), null);
-            Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
+        }
+
+        [TestMethod]
+        public void DontEmitDefaultTest()
+        {
+            //Defaults for Value types will not be serialized if EmitDefaultValue = false
+
+            var result = serializer.Serialize(dateTimeObj);
+
+            var mapping = mappings.Single(x => x.Property.Name == nameof(dateTimeObj.DontEmitDefault));
+            var bnfField = mapping.KeyName;
+
+            Assert.IsFalse(result.Contains($"{bnfField}"));
+
+            var deserialized = serializer.Deserialize<DateTimeObj>(result);
+            Assert.AreEqual(dateTimeObj, deserialized);
         }
     }
 
     public class DateTimeObj
     {
-        [BnfProperty(Key = "default_format_date")]
+        [DataMember(Name = "default_format_date")]
         public DateTime DefaultFormatDate { get; set; }
 
-        [BnfProperty(Key = "explicit_format_date", DataFormatString = "{0:dd/MM/yyyy}")]
+        [DataMember(Name = "explicit_format_date")]
+        [DataFormat(DataFormatString = "dd/MM/yyyy")]
         public DateTime ExplicitFormatDate { get; set; }
 
-        [BnfProperty(Key = "settings_format_date")]
+        [DataMember(Name = "settings_format_date")]
         public DateTime SettingsFormatDate { get; set; }
+
+        [DataMember(Name = "dont_emit_default", EmitDefaultValue = false)]
+        public DateTime DontEmitDefault { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            var other = obj as DateTimeObj;
+            if (other == null)
+                return false;
+
+            return
+                DefaultFormatDate.ToShortDateString() == other.DefaultFormatDate.ToShortDateString() &&
+                ExplicitFormatDate.ToShortDateString() == other.ExplicitFormatDate.ToShortDateString() && 
+                SettingsFormatDate.ToShortDateString() == other.SettingsFormatDate.ToShortDateString() &&
+                DontEmitDefault.ToShortDateString() == other.DontEmitDefault.ToShortDateString();
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

@@ -3,6 +3,7 @@ using Bnf.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Bnf.Serialization.Attributes;
+using System.Runtime.Serialization;
 
 namespace Bnf.Tests
 {
@@ -34,7 +35,7 @@ namespace Bnf.Tests
         public void ArrayIntTest()
         {
             var array = new[] { 1, 2, 3, 4, 5 };
-            var itemCollection = new ItemCollection { IntArray = array };
+            var itemCollection = new ItemCollection { IntArray = new IntArray (array) };
             var result = serializer.Serialize(itemCollection);
 
             Assert.AreEqual("{int_item_array={int1=1 | int2=2 | int3=3 | int4=4 | int5=5}}", result, false);
@@ -47,7 +48,7 @@ namespace Bnf.Tests
         public void ArrayStringTest()
         {
             var array = new[] { "Mithun", "Basak", "is", "great" };
-            var itemCollection = new ItemCollection { StringArray = array };
+            var itemCollection = new ItemCollection { StringArray = new StringArray(array) };
             var result = serializer.Serialize(itemCollection);
 
             Assert.AreEqual("{string_item_array={enum1=Mithun | enum2=Basak | enum3=is | enum4=great}}", result, false);
@@ -63,10 +64,9 @@ namespace Bnf.Tests
             var itemCollection = new ItemCollection { NoAttributeItemArray = array };
             var result = serializer.Serialize(itemCollection);
 
-            var deserialized = serializer.Deserialize<ItemCollection>(result);
-
             Assert.AreEqual("{NoAttributeItemArray={Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}}}", result, false);
 
+            var deserialized = serializer.Deserialize<ItemCollection>(result);
             Assert.AreEqual(itemCollection, deserialized);
         }
 
@@ -74,7 +74,7 @@ namespace Bnf.Tests
         public void ArrayAsNamedPropertyTest()
         {
             var array = new[] { new ItemA { Id = 1, Name = "A" }, new ItemA { Id = 2, Name = "B" } };
-            var itemCollection = new ItemCollection { NamedItemArray = array };
+            var itemCollection = new ItemCollection { NamedItemArray = new ItemACollection(array) };
             var result = serializer.Serialize(itemCollection);
             Assert.AreEqual("{named_item_array={item1={id=1 | name=A} | item2={id=2 | name=B}}}", result, false);
 
@@ -102,7 +102,7 @@ namespace Bnf.Tests
             var itemCollection = new ItemCollection
             {
                 NoAttributeItemArray = new[] { new ItemA { Id = 1, Name = "A" }, new ItemA { Id = 2, Name = "B" } },
-                NamedItemArray = new[] { new ItemA { Id = 3, Name = "C" }, new ItemA { Id = 4, Name = "D" } },
+                NamedItemArray = new ItemACollection( new[] { new ItemA { Id = 3, Name = "C" }, new ItemA { Id = 4, Name = "D" } }),
                 NonNamedItemArray = new[] { new ItemA { Id = 5, Name = "E" }, new ItemA { Id = 6, Name = "F" } }
             };
             var container = new ContainerObj { Collection = itemCollection };
@@ -131,7 +131,7 @@ namespace Bnf.Tests
 
     public class ContainerObj
     {
-        [BnfProperty(Key = "item_collection")]
+        [DataMember(Name = "item_collection")]
         public ItemCollection Collection { get; set; }
 
         public override bool Equals(object obj)
@@ -157,19 +157,20 @@ namespace Bnf.Tests
 
     public class ItemCollection
     {
+        [DataMember]
         public ItemA[] NoAttributeItemArray { get; set; }
 
-        [BnfProperty(Key = "named_item_array", ElementName = "item")]
-        public ItemA[] NamedItemArray { get; set; }
+        [DataMember(Name = "named_item_array")]
+        public ItemACollection NamedItemArray { get; set; }
 
-        [BnfProperty(Key = "nonnamed_item_array")]
+        [DataMember(Name = "nonnamed_item_array")]
         public ItemA[] NonNamedItemArray { get; set; }
 
-        [BnfProperty(Key = "int_item_array", ElementName = "int")]
-        public int[] IntArray { get; set; }
+        [DataMember(Name = "int_item_array")]
+        public IntArray IntArray { get; set; }
 
-        [BnfProperty(Key = "string_item_array", ElementName = "enum")]
-        public string[] StringArray { get; set; }
+        [DataMember]
+        public StringArray StringArray { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -183,11 +184,13 @@ namespace Bnf.Tests
             if (other == null)
                 return false;
 
+
             var comparer = new ArrayComparer();
             return 
-                comparer.Compare(NoAttributeItemArray, other.NoAttributeItemArray) == 0 &&
-                comparer.Compare(NamedItemArray, other.NamedItemArray) == 0 &&
-                comparer.Compare(NonNamedItemArray, other.NonNamedItemArray) == 0;
+                comparer.Compare(NoAttributeItemArray, other?.NoAttributeItemArray) == 0 &&
+                NamedItemArray == null ? true : NamedItemArray.Equals(other.NamedItemArray) &&
+                IntArray == other?.IntArray &&
+                comparer.Compare(NonNamedItemArray, other?.NonNamedItemArray) == 0;
         }
 
         public override int GetHashCode()
@@ -198,10 +201,10 @@ namespace Bnf.Tests
 
     public class ItemA
     {
-        [BnfProperty(Key = "id")]
+        [DataMember(Name = "id")]
         public int Id { get; set; }
 
-        [BnfProperty(Key = "name")]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         public override int GetHashCode()
@@ -227,10 +230,11 @@ namespace Bnf.Tests
 
     public class ItemB
     {
-        [BnfProperty(Key = "income")]
+        [DataMember(Name = "income")]
         public decimal Income { get; set; }
 
-        [BnfProperty(Key = "dob", DataFormatString = "{0:dd/MM/yyyy}")]
+        [DataMember(Name = "dob")]
+        [DataFormat(DataFormatString = "dd/MM/yyyy")]
         public DateTime DateOfBirth { get; set; }
 
         public override int GetHashCode()
@@ -254,6 +258,110 @@ namespace Bnf.Tests
         }
     }
 
+    [CollectionDataContract(ItemName = "item")]
+    public class ItemACollection : List<ItemA>
+    {
+        public ItemACollection()
+        {
+
+        }
+
+        public ItemACollection(IEnumerable<ItemA> collection) : base(collection)
+        {
+
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            var other = obj as ItemACollection;
+            if (other == null)
+                return false;
+
+            var comparer = new ArrayComparer();
+            return comparer.Compare(ToArray(), other.ToArray()) == 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+
+    [CollectionDataContract(ItemName = "int")]
+    public class IntArray : List<int>
+    {
+        public IntArray()
+        {
+
+        }
+
+        public IntArray(IEnumerable<int> collection) : base(collection)
+        {
+
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            var other = obj as IntArray;
+            if (other == null)
+                return false;
+
+            var comparer = new ArrayComparer();
+            return comparer.Compare(ToArray(), other.ToArray()) == 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
+
+    [CollectionDataContract(Name = "string_item_array", ItemName = "enum")]
+    public class StringArray : List<string>
+    {
+        public StringArray()
+        {
+
+        }
+
+        public StringArray(IEnumerable<string> collection) : base(collection)
+        {
+
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            var other = obj as StringArray;
+            if (other == null)
+                return false;
+
+            var comparer = new ArrayComparer();
+            return comparer.Compare(ToArray(), other.ToArray()) == 0;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+    }
 
     public class ArrayComparer : IComparer<Array>
     {
