@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Bnf.Serialization.Attributes;
 using System.Runtime.Serialization;
+using System.IO;
+using System.Text;
 
 namespace Bnf.Tests
 {
@@ -107,7 +109,14 @@ namespace Bnf.Tests
             };
             var container = new ContainerObj { Collection = itemCollection };
             var result = serializer.Serialize(container);
-            Assert.AreEqual("{item_collection={NoAttributeItemArray={Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}} | named_item_array={item1={id=3 | name=C} | item2={id=4 | name=D}} | nonnamed_item_array={Bnf.Tests.ItemA1={id=5 | name=E} | Bnf.Tests.ItemA2={id=6 | name=F}}}}",
+
+            var sr = new DataContractSerializer(typeof(ContainerObj));
+            MemoryStream memoryStream = new MemoryStream();
+            sr.WriteObject(memoryStream, container);
+            var text = Encoding.UTF8.GetString(memoryStream.GetBuffer());
+
+
+            Assert.AreEqual("{item_collection={named_item_array={item1={id=3 | name=C} | item2={id=4 | name=D}} | nonnamed_item_array={Bnf.Tests.ItemA1={id=5 | name=E} | Bnf.Tests.ItemA2={id=6 | name=F}} | NoAttributeItemArray={Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}}}}",
                 result, false);
 
             var deserialized = serializer.Deserialize<ContainerObj>(result);
@@ -121,7 +130,7 @@ namespace Bnf.Tests
         {
             var array = new object[] { new ItemA { Id = 1, Name = "A" }, new ItemB { Income = 100.50m, DateOfBirth = new DateTime(1980, 7, 28) } };
             var result = serializer.Serialize(array);
-            Assert.AreEqual("{Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemB2={income=100.50 | dob=28/07/1980}}", result, false);
+            Assert.AreEqual("{Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemB2={dob=28/07/1980 | income=100.50}}", result, false);
 
             var deserialized = serializer.Deserialize<object[]>(result);
 
@@ -129,6 +138,7 @@ namespace Bnf.Tests
         }
     }
 
+    [DataContract(Namespace = "")]
     public class ContainerObj
     {
         [DataMember(Name = "item_collection")]
@@ -155,9 +165,10 @@ namespace Bnf.Tests
         }
     }
 
+    [DataContract(Namespace = "")]
     public class ItemCollection
     {
-        [DataMember]
+        [DataMember(Order = 1)]
         public ItemA[] NoAttributeItemArray { get; set; }
 
         [DataMember(Name = "named_item_array")]
@@ -169,7 +180,7 @@ namespace Bnf.Tests
         [DataMember(Name = "int_item_array")]
         public IntArray IntArray { get; set; }
 
-        [DataMember]
+        [DataMember(Name = "string_item_array")]
         public StringArray StringArray { get; set; }
 
         public override bool Equals(object obj)
@@ -199,6 +210,7 @@ namespace Bnf.Tests
         }
     }
 
+    [DataContract(Namespace = "")]
     public class ItemA
     {
         [DataMember(Name = "id")]
@@ -228,6 +240,7 @@ namespace Bnf.Tests
         }
     }
 
+    [DataContract(Namespace = "")]
     public class ItemB
     {
         [DataMember(Name = "income")]
@@ -328,7 +341,7 @@ namespace Bnf.Tests
         }
     }
 
-    [CollectionDataContract(Name = "string_item_array", ItemName = "enum")]
+    [CollectionDataContract(ItemName = "enum")]
     public class StringArray : List<string>
     {
         public StringArray()

@@ -15,7 +15,7 @@ namespace Bnf.Serialization.Infrastructure
                 throw new ArgumentNullException(nameof(obj));
 
             var result = new List<PropertyMetaData>(GetProperties(0, obj.GetType()));
-            return result.OrderByDescending(x => x.InheritanceLevel);
+            return result.OrderByDescending(x => x.InheritanceLevel).ThenBy(x => x.Order).ThenBy(x => x.KeyName, StringComparer.Ordinal);
         }
 
         private static IEnumerable<PropertyMetaData> GetProperties(int level, Type type)
@@ -36,26 +36,23 @@ namespace Bnf.Serialization.Infrastructure
                 var dataContractAttribute = propertyInfo.PropertyType.GetCustomAttribute<DataContractAttribute>();
                 var collectionAttribute = isEnumerable ? propertyInfo.PropertyType.GetCustomAttribute<CollectionDataContractAttribute>() : null;
                 
-                var metaData = new PropertyMetaData(type, propertyInfo, level);
+                var metaData = new PropertyMetaData();
 
+                metaData.Property = propertyInfo;
+                metaData.InheritanceLevel = level;
                 metaData.IsDataMember = dataMemberAttribute != null;
                 metaData.IsEnumerable = isEnumerable;
                 metaData.IsPrimitive = TypeHelper.IsPrimitive(propertyInfo.PropertyType);
                 metaData.IsEnum = propertyInfo.PropertyType.IsEnum;
 
+                metaData.KeyName = dataMemberAttribute?.Name ?? propertyInfo.Name;
                 if (isEnumerable)
-                {
-                    metaData.KeyName = dataMemberAttribute?.Name ?? collectionAttribute?.Name ?? propertyInfo.Name;
                     metaData.ItemName = collectionAttribute?.ItemName ?? TypeHelper.GetElementType(propertyInfo.PropertyType).FullName;
-                }
-                else if (propertyInfo.PropertyType.IsEnum)
-                    metaData.KeyName = dataMemberAttribute?.Name ?? propertyInfo.Name;
-                else
-                    metaData.KeyName = dataMemberAttribute?.Name ?? dataContractAttribute?.Name ?? propertyInfo.Name;
 
                 var isReadWriteProperty = propertyInfo.CanRead && propertyInfo.CanWrite;
                 metaData.IsReadWriteProperty = isReadWriteProperty;
                 metaData.IsRequired = dataMemberAttribute?.IsRequired ?? false;
+                metaData.Order = dataMemberAttribute?.Order;
                 metaData.NullText = dataFormatAttribute?.NullText;
                 metaData.EmitDefaultValue = dataMemberAttribute?.EmitDefaultValue ?? true;
                 metaData.DefaultValue = TypeHelper.GetDefaultValue(propertyInfo.PropertyType);

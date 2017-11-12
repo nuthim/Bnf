@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 
 
@@ -6,8 +5,6 @@ namespace Bnf.Serialization.Infrastructure
 {
     public class PropertyMetaData
     {
-        public Type Type { get; internal set; }
-
         public PropertyInfo Property { get; internal set; }
 
         public bool IsDataMember { get; internal set; }
@@ -24,6 +21,8 @@ namespace Bnf.Serialization.Infrastructure
 
         public bool IsRequired { get; internal set; }
 
+        public int? Order { get; internal set; }
+
         public int InheritanceLevel { get; internal set; }
 
         public string DataFormatString { get; internal set; }
@@ -38,11 +37,9 @@ namespace Bnf.Serialization.Infrastructure
 
         public bool IsEnum { get; internal set; }
 
-        public PropertyMetaData(Type type, PropertyInfo propertyInfo, int inheritanceLevel)
+        public PropertyMetaData()
         {
-            Type = type;
-            Property = propertyInfo;
-            InheritanceLevel = inheritanceLevel;
+
         }
     }
 }
