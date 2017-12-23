@@ -16,11 +16,13 @@ namespace Bnf.Serialization
 
         public BnfSettings()
         {
-            _escapeCodes = new Dictionary<char, string>();
-            _escapeCodes.Add('{', @"\[");
-            _escapeCodes.Add('}', @"\]");
-            _escapeCodes.Add('\\', @"\\");
-            _escapeCodes.Add('|', @"\/");
+            _escapeCodes = new Dictionary<char, string>
+            {
+                {'{', @"\["},
+                { '}', @"\]"},
+                { '\\', @"\\"},
+                { '|', @"\/"}
+            };
 
             _formatStrings = new Dictionary<Type, string>();
         }
@@ -31,15 +33,9 @@ namespace Bnf.Serialization
 
         public string NullText { get; set; }
 
-        public IReadOnlyDictionary<char, string> EscapeCodes
-        {
-            get { return new ReadOnlyDictionary<char, string>(_escapeCodes); }
-        }
+        public IReadOnlyDictionary<char, string> EscapeCodes => new ReadOnlyDictionary<char, string>(_escapeCodes);
 
-        public IReadOnlyDictionary<Type, string> FormatStrings
-        {
-            get { return new ReadOnlyDictionary<Type, string>(_formatStrings); }
-        }
+        public IReadOnlyDictionary<Type, string> FormatStrings => new ReadOnlyDictionary<Type, string>(_formatStrings);
 
         #endregion
 

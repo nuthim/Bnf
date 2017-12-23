@@ -15,7 +15,7 @@ namespace Bnf.Tests
         private static IEnumerable<PropertyMetaData> mappings;
         private static TimeSpanObj timeSpanObj;
         private static BnfSerializer serializer;
-        private static TimeSpan timeNow = DateTime.Now.TimeOfDay;
+        private static TimeSpan timeNow = new TimeSpan(11, 59, 59);
 
         [ClassInitialize]
         public static void Initialize(TestContext context)
@@ -38,7 +38,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={timeNow.ToString()}"));
 
             var deserialized = serializer.Deserialize<TimeSpanObj>(result);
-            Assert.AreEqual(timeSpanObj, deserialized);
+            Assert.IsTrue(deserialized.Match(timeSpanObj));
         }
 
 
@@ -56,7 +56,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<TimeSpanObj>(result);
-            Assert.AreEqual(timeSpanObj, deserialized);
+            Assert.IsTrue(deserialized.Match(timeSpanObj));
         }
 
         [TestMethod]
@@ -74,7 +74,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<TimeSpanObj>(result);
-            Assert.AreEqual(timeSpanObj, deserialized);
+            Assert.IsTrue(deserialized.Match(timeSpanObj));
 
             serializer.Settings.SetFormatString(typeof(TimeSpan), null);
         }
@@ -94,7 +94,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<TimeSpanObj>(result);
-            Assert.AreEqual(timeSpanObj, deserialized);
+            Assert.IsTrue(deserialized.Match(timeSpanObj));
 
             serializer.Settings.SetFormatString(typeof(TimeSpan), null);
         }
@@ -112,28 +112,5 @@ namespace Bnf.Tests
 
         [DataMember(Name = "settings_format_time")]
         public TimeSpan SettingsFormatTime { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as TimeSpanObj;
-            if (other == null)
-                return false;
-
-            return
-                DefaultFormatTime.ToString("hh\\:mm\\:ss") == other.DefaultFormatTime.ToString("hh\\:mm\\:ss") &&
-                ExplicitFormatTime.ToString("hh\\:mm\\:ss") == other.ExplicitFormatTime.ToString("hh\\:mm\\:ss") &&
-                SettingsFormatTime.ToString("hh\\:mm\\:ss") == other.SettingsFormatTime.ToString("hh\\:mm\\:ss");
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 }

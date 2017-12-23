@@ -43,7 +43,7 @@ namespace Bnf.Tests
             Assert.IsFalse(result.Contains(mapping.Property.Name));
 
             var deserialized = serializer.Deserialize<InclusionObj>(result);
-            Assert.AreEqual(inclusionObj, deserialized);
+            Assert.IsTrue(deserialized.Match(inclusionObj));
         }
 
 
@@ -63,7 +63,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{lastMapping.Property.Name}={inclusionObj.LastName}"));
 
             var deserialized = serializer.Deserialize<InclusionObj>(result);
-            Assert.AreEqual(inclusionObj, deserialized);
+            Assert.IsTrue(deserialized.Match(inclusionObj));
         }
 
 
@@ -83,28 +83,6 @@ namespace Bnf.Tests
             public string Password { get; set; }
 
             public string GetterOnly => "Getter only";
-
-            public override bool Equals(object obj)
-            {
-                if (obj == null)
-                    return false;
-
-                if (ReferenceEquals(this, obj))
-                    return true;
-
-                var other = obj as InclusionObj;
-                if (other == null)
-                    return false;
-
-                return
-                    FirstName == other.FirstName &&
-                    LastName == other.LastName;
-            }
-
-            public override int GetHashCode()
-            {
-                return base.GetHashCode();
-            }
         }
     }
 }

@@ -27,25 +27,25 @@ namespace Bnf.Serialization.Infrastructure
 
             foreach (var propertyInfo in type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
             {
-                var attributes = propertyInfo.GetCustomAttributes();
+                var attributes = propertyInfo.GetCustomAttributes().ToArray();
                 var dataMemberAttribute = attributes.OfType<DataMemberAttribute>().SingleOrDefault();
                 var dataFormatAttribute = attributes.OfType<DataFormatAttribute>().SingleOrDefault();
 
                 var isEnumerable = TypeHelper.IsEnumerable(propertyInfo.PropertyType);
 
-                var dataContractAttribute = propertyInfo.PropertyType.GetCustomAttribute<DataContractAttribute>();
                 var collectionAttribute = isEnumerable ? propertyInfo.PropertyType.GetCustomAttribute<CollectionDataContractAttribute>() : null;
-                
-                var metaData = new PropertyMetaData();
 
-                metaData.Property = propertyInfo;
-                metaData.InheritanceLevel = level;
-                metaData.IsDataMember = dataMemberAttribute != null;
-                metaData.IsEnumerable = isEnumerable;
-                metaData.IsPrimitive = TypeHelper.IsPrimitive(propertyInfo.PropertyType);
-                metaData.IsEnum = propertyInfo.PropertyType.IsEnum;
+                var metaData = new PropertyMetaData
+                {
+                    Property = propertyInfo,
+                    InheritanceLevel = level,
+                    IsDataMember = dataMemberAttribute != null,
+                    IsEnumerable = isEnumerable,
+                    IsPrimitive = TypeHelper.IsPrimitive(propertyInfo.PropertyType),
+                    IsEnum = propertyInfo.PropertyType.IsEnum,
+                    KeyName = dataMemberAttribute?.Name ?? propertyInfo.Name
+                };
 
-                metaData.KeyName = dataMemberAttribute?.Name ?? propertyInfo.Name;
                 if (isEnumerable)
                     metaData.ItemName = collectionAttribute?.ItemName ?? TypeHelper.GetElementType(propertyInfo.PropertyType).FullName;
 

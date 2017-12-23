@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Dynamic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 
@@ -81,10 +82,8 @@ namespace Bnf.Serialization.Infrastructure
             var braceCount = 0;
             var word = new List<char>();
             var properties = new List<string>();
-            var unescapeCodes = new ReadOnlyDictionary<string, char>(GetUnescapeCodes());
-            
-
-            int index = 0;
+           
+            var index = 0;
             while(index < value.Length)
             {
                 var item = value[index];
@@ -149,12 +148,7 @@ namespace Bnf.Serialization.Infrastructure
 
         private IDictionary<string, char> GetUnescapeCodes()
         {
-            var codes = new Dictionary<string, char>();
-
-            foreach (var item in Settings.EscapeCodes)
-                codes.Add(item.Value, item.Key);
-
-            return codes;
+            return Settings.EscapeCodes.ToDictionary(item => item.Value, item => item.Key);
         }
 
         #endregion

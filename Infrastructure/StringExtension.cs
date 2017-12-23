@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 
@@ -36,11 +37,11 @@ namespace Bnf.Serialization.Infrastructure
             var replacedIndex = new List<int>();
             foreach (var code in unescapeCodes)
             {
-                int startIndex = 0;
-                int index = -1;
+                var startIndex = 0;
+                int index;
                 do
                 {
-                    index = value.IndexOf(code.Key, startIndex);
+                    index = value.IndexOf(code.Key, startIndex, StringComparison.Ordinal);
                     if (index > -1)
                     {
                         startIndex = index + 1;

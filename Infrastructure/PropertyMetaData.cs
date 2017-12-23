@@ -37,9 +37,5 @@ namespace Bnf.Serialization.Infrastructure
 
         public bool IsEnum { get; internal set; }
 
-        public PropertyMetaData()
-        {
-
-        }
     }
 }

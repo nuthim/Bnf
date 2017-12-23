@@ -56,9 +56,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CollectionComparer.cs" />
     <Compile Include="DateTimeSerializationTests.cs" />
+    <Compile Include="EqualityComparer.cs" />
     <Compile Include="NullTextSerializationTests.cs" />
     <Compile Include="InclusionSerializationTests.cs" />
+    <Compile Include="ObjectExtension.cs" />
     <Compile Include="TimeSpanSerializationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EscapeCodeSerializationTests.cs" />

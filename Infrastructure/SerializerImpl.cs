@@ -11,8 +11,8 @@ namespace Bnf.Serialization.Infrastructure
     internal class SerializerImpl
     {
         #region Fields
-        private PropertyMetaDataFactory _metadataFactory = new PropertyMetaDataFactory();
-        private BnfValidator _validator = new BnfValidator();
+        private readonly PropertyMetaDataFactory _metadataFactory = new PropertyMetaDataFactory();
+        private readonly BnfValidator _validator = new BnfValidator();
         #endregion
 
         #region Properties
@@ -50,14 +50,7 @@ namespace Bnf.Serialization.Infrastructure
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            if (TypeHelper.IsEnumerable(data.GetType()))
-            {
-                return SerializeIntl((IList)data, null);
-            }
-            else
-            {
-                return SerializeIntl(data);
-            }
+            return TypeHelper.IsEnumerable(data.GetType()) ? SerializeIntl((IList)data, null) : SerializeIntl(data);
         }
 
         #region Helper Methods
@@ -125,14 +118,13 @@ namespace Bnf.Serialization.Infrastructure
                 return value.ToString();
 
             var method = type.GetMethod("ToString", new[] { typeof(string)});
-            return (string)method.Invoke(value, new[] { formatString });
+            return (string)method.Invoke(value, new object[] { formatString });
         }
 
         private string GetEnumValue(object propertyValue)
         {
             var enumType = propertyValue.GetType();
             var enumStr = propertyValue.ToString();
-            var obj = Enum.Parse(enumType, enumStr);
             var enumAttribute = enumType.GetMember(enumStr)[0].GetCustomAttribute<EnumMemberAttribute>();
 
             return (enumAttribute?.Value ?? enumStr).Escape(Settings.EscapeCodes);

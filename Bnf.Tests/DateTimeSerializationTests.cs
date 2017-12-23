@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bnf.Serialization;
 using System.Collections.Generic;
+using System.Globalization;
 using Bnf.Serialization.Attributes;
 using Bnf.Serialization.Infrastructure;
 using System.Runtime.Serialization;
@@ -15,7 +16,7 @@ namespace Bnf.Tests
         private static IEnumerable<PropertyMetaData> mappings;
         private static DateTimeObj dateTimeObj;
         private static BnfSerializer serializer;
-        private static DateTime dateNow = DateTime.Now;
+        private static DateTime dateNow = DateTime.Today;
 
         [ClassInitialize]
         public static void Initialize(TestContext context)
@@ -38,7 +39,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={dateNow.ToString()}"));
 
             var deserialized = serializer.Deserialize<DateTimeObj>(result);
-            Assert.AreEqual(dateTimeObj, deserialized);
+            Assert.IsTrue(deserialized.Match(dateTimeObj));
         }
 
         [TestMethod]
@@ -54,7 +55,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<DateTimeObj>(result);
-            Assert.AreEqual(dateTimeObj, deserialized);
+            Assert.IsTrue(deserialized.Match(dateTimeObj));
         }
 
         [TestMethod]
@@ -72,7 +73,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<DateTimeObj>(result);
-            Assert.AreEqual(dateTimeObj, deserialized);
+            Assert.IsTrue(deserialized.Match(dateTimeObj));
 
             serializer.Settings.SetFormatString(typeof(DateTime), null);
         }
@@ -92,7 +93,7 @@ namespace Bnf.Tests
             Assert.IsTrue(result.Contains($"{bnfField}={expectedValue}"));
 
             var deserialized = serializer.Deserialize<DateTimeObj>(result);
-            Assert.AreEqual(dateTimeObj, deserialized);
+            Assert.IsTrue(deserialized.Match(dateTimeObj));
 
             serializer.Settings.SetFormatString(typeof(DateTime), null);
         }
@@ -110,7 +111,7 @@ namespace Bnf.Tests
             Assert.IsFalse(result.Contains($"{bnfField}"));
 
             var deserialized = serializer.Deserialize<DateTimeObj>(result);
-            Assert.AreEqual(dateTimeObj, deserialized);
+            Assert.IsTrue(deserialized.Match(dateTimeObj));
         }
     }
 
@@ -128,29 +129,5 @@ namespace Bnf.Tests
 
         [DataMember(Name = "dont_emit_default", EmitDefaultValue = false)]
         public DateTime DontEmitDefault { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as DateTimeObj;
-            if (other == null)
-                return false;
-
-            return
-                DefaultFormatDate.ToShortDateString() == other.DefaultFormatDate.ToShortDateString() &&
-                ExplicitFormatDate.ToShortDateString() == other.ExplicitFormatDate.ToShortDateString() && 
-                SettingsFormatDate.ToShortDateString() == other.SettingsFormatDate.ToShortDateString() &&
-                DontEmitDefault.ToShortDateString() == other.DontEmitDefault.ToShortDateString();
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 }

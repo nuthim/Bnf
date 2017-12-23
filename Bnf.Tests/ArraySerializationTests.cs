@@ -30,7 +30,7 @@ namespace Bnf.Tests
             Assert.AreEqual("{Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}}", result, false);
             var deserializedArray = serializer.Deserialize<ItemA[]>(result);
 
-            Assert.AreEqual(new ArrayComparer().Compare(array, deserializedArray), 0);
+            Assert.IsTrue(deserializedArray.Match(array));
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ namespace Bnf.Tests
             Assert.AreEqual("{int_item_array={int1=1 | int2=2 | int3=3 | int4=4 | int5=5}}", result, false);
             var deserializedArray = serializer.Deserialize<ItemCollection>(result);
 
-            Assert.AreEqual(itemCollection, deserializedArray);
+            Assert.IsTrue(deserializedArray.Match(itemCollection));
         }
 
         [TestMethod]
@@ -56,7 +56,7 @@ namespace Bnf.Tests
             Assert.AreEqual("{string_item_array={enum1=Mithun | enum2=Basak | enum3=is | enum4=great}}", result, false);
             var deserializedArray = serializer.Deserialize<ItemCollection>(result);
 
-            Assert.AreEqual(itemCollection, deserializedArray);
+            Assert.IsTrue(deserializedArray.Match(itemCollection));
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace Bnf.Tests
             Assert.AreEqual("{NoAttributeItemArray={Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}}}", result, false);
 
             var deserialized = serializer.Deserialize<ItemCollection>(result);
-            Assert.AreEqual(itemCollection, deserialized);
+            Assert.IsTrue(deserialized.Match(itemCollection));
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Bnf.Tests
 
             var deserialized = serializer.Deserialize<ItemCollection>(result);
 
-            Assert.AreEqual(itemCollection, deserialized);
+            Assert.IsTrue(deserialized.Match(itemCollection));
         }
 
         [TestMethod]
@@ -95,7 +95,7 @@ namespace Bnf.Tests
 
             var deserialized = serializer.Deserialize<ItemCollection>(result);
 
-            Assert.AreEqual(itemCollection, deserialized);
+            Assert.IsTrue(deserialized.Match(itemCollection));
         }
 
         [TestMethod]
@@ -110,18 +110,11 @@ namespace Bnf.Tests
             var container = new ContainerObj { Collection = itemCollection };
             var result = serializer.Serialize(container);
 
-            var sr = new DataContractSerializer(typeof(ContainerObj));
-            MemoryStream memoryStream = new MemoryStream();
-            sr.WriteObject(memoryStream, container);
-            var text = Encoding.UTF8.GetString(memoryStream.GetBuffer());
-
-
             Assert.AreEqual("{item_collection={named_item_array={item1={id=3 | name=C} | item2={id=4 | name=D}} | nonnamed_item_array={Bnf.Tests.ItemA1={id=5 | name=E} | Bnf.Tests.ItemA2={id=6 | name=F}} | NoAttributeItemArray={Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemA2={id=2 | name=B}}}}",
                 result, false);
 
             var deserialized = serializer.Deserialize<ContainerObj>(result);
-
-            Assert.AreEqual(container, deserialized);
+            Assert.IsTrue(deserialized.Match(container));
         }
 
         [TestMethod]
@@ -133,8 +126,7 @@ namespace Bnf.Tests
             Assert.AreEqual("{Bnf.Tests.ItemA1={id=1 | name=A} | Bnf.Tests.ItemB2={dob=28/07/1980 | income=100.50}}", result, false);
 
             var deserialized = serializer.Deserialize<object[]>(result);
-
-            Assert.AreEqual(result, deserialized);
+            Assert.IsTrue(deserialized.Match(result));
         }
     }
 
@@ -143,26 +135,6 @@ namespace Bnf.Tests
     {
         [DataMember(Name = "item_collection")]
         public ItemCollection Collection { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as ContainerObj;
-            if (other == null)
-                return false;
-
-            return Collection.Equals(other.Collection);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 
     [DataContract(Namespace = "")]
@@ -182,32 +154,6 @@ namespace Bnf.Tests
 
         [DataMember(Name = "string_item_array")]
         public StringArray StringArray { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as ItemCollection;
-            if (other == null)
-                return false;
-
-
-            var comparer = new ArrayComparer();
-            return 
-                comparer.Compare(NoAttributeItemArray, other?.NoAttributeItemArray) == 0 &&
-                NamedItemArray == null ? true : NamedItemArray.Equals(other.NamedItemArray) &&
-                IntArray == other?.IntArray &&
-                comparer.Compare(NonNamedItemArray, other?.NonNamedItemArray) == 0;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 
     [DataContract(Namespace = "")]
@@ -218,26 +164,6 @@ namespace Bnf.Tests
 
         [DataMember(Name = "name")]
         public string Name { get; set; }
-
-        public override int GetHashCode()
-        {
-            return Name == null ? Id.GetHashCode() : Id.GetHashCode() ^ Name.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as ItemA;
-            if (other == null)
-                return false;
-
-            return Id == other.Id && Name == other.Name;
-        }
     }
 
     [DataContract(Namespace = "")]
@@ -249,26 +175,6 @@ namespace Bnf.Tests
         [DataMember(Name = "dob")]
         [DataFormat(DataFormatString = "dd/MM/yyyy")]
         public DateTime DateOfBirth { get; set; }
-
-        public override int GetHashCode()
-        {
-            return Income.GetHashCode() ^ DateOfBirth.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as ItemB;
-            if (other == null)
-                return false;
-
-            return Income == other.Income && DateOfBirth == other.DateOfBirth;
-        }
     }
 
     [CollectionDataContract(ItemName = "item")]
@@ -282,27 +188,6 @@ namespace Bnf.Tests
         public ItemACollection(IEnumerable<ItemA> collection) : base(collection)
         {
 
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as ItemACollection;
-            if (other == null)
-                return false;
-
-            var comparer = new ArrayComparer();
-            return comparer.Compare(ToArray(), other.ToArray()) == 0;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
         }
     }
 
@@ -318,27 +203,6 @@ namespace Bnf.Tests
         {
 
         }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as IntArray;
-            if (other == null)
-                return false;
-
-            var comparer = new ArrayComparer();
-            return comparer.Compare(ToArray(), other.ToArray()) == 0;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 
     [CollectionDataContract(ItemName = "enum")]
@@ -352,55 +216,6 @@ namespace Bnf.Tests
         public StringArray(IEnumerable<string> collection) : base(collection)
         {
 
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            var other = obj as StringArray;
-            if (other == null)
-                return false;
-
-            var comparer = new ArrayComparer();
-            return comparer.Compare(ToArray(), other.ToArray()) == 0;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-    }
-
-    public class ArrayComparer : IComparer<Array>
-    {
-        public int Compare(Array x, Array y)
-        {
-            if (ReferenceEquals(x, y))
-                return 0;
-
-            if (x == null)
-                return -1;
-
-            if (y == null)
-                return 1;
-
-            if (x.Length != y.Length)
-                return x.Length > y.Length ? 1 : -1;
-
-            for (int i = 0; i < x.Length; i++)
-            {
-                if (x.GetValue(i).Equals(y.GetValue(i)))
-                    continue;
-
-                return 1;
-            }
-
-            return 0;
         }
     }
 }

@@ -13,8 +13,8 @@ namespace Bnf.Serialization.Infrastructure
     internal class DeserializerImpl
     {
         #region Fields
-        private PropertyMetaDataFactory _metadataFactory = new PropertyMetaDataFactory();
-        private ExpandoObjectGenerator _expandoGenerator;
+        private readonly PropertyMetaDataFactory _metadataFactory = new PropertyMetaDataFactory();
+        private readonly ExpandoObjectGenerator _expandoGenerator;
         #endregion
 
         #region Properties
@@ -135,34 +135,32 @@ namespace Bnf.Serialization.Infrastructure
             return list.ToArray();
         }
 
-        private object DeserializeValue(string strValue, string formatString, Type resultType)
+        private static object DeserializeValue(string strValue, string formatString, Type resultType)
         {
             if (resultType.IsEnum)
                 return GetEnumValue(strValue, resultType);
 
             if (string.IsNullOrEmpty(formatString))
                 return TypeDescriptor.GetConverter(resultType).ConvertFrom(strValue);
-            else
+            
+            if (resultType == typeof(TimeSpan))
             {
-                if (resultType == typeof(TimeSpan))
-                {
-                    TimeSpan timeSpan;
-                    TimeSpan.TryParseExact(strValue, formatString, null, out timeSpan);
-                    return timeSpan;
-                }
+                TimeSpan timeSpan;
+                TimeSpan.TryParseExact(strValue, formatString, null, out timeSpan);
+                return timeSpan;
+            }
 
-                if (resultType == typeof(DateTime))
-                {
-                    DateTime dateTime;
-                    DateTime.TryParseExact(strValue, formatString, null, System.Globalization.DateTimeStyles.None, out dateTime);
-                    return dateTime;
-                }
+            if (resultType == typeof(DateTime))
+            {
+                DateTime dateTime;
+                DateTime.TryParseExact(strValue, formatString, null, System.Globalization.DateTimeStyles.None, out dateTime);
+                return dateTime;
             }
 
             return TypeDescriptor.GetConverter(resultType).ConvertFrom(strValue);
         }
 
-        private object GetEnumValue(string strValue, Type enumType)
+        private static object GetEnumValue(string strValue, Type enumType)
         {
             if (Enum.IsDefined(enumType, strValue))
                 return Enum.Parse(enumType, strValue);
@@ -179,6 +177,7 @@ namespace Bnf.Serialization.Infrastructure
 
             throw new InvalidCastException();
         }
+
         #endregion
     }
 }

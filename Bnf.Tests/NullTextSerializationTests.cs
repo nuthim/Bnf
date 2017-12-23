@@ -5,7 +5,7 @@ using Bnf.Serialization.Attributes;
 using System.Collections.Generic;
 using Bnf.Serialization.Infrastructure;
 using System.Runtime.Serialization;
-using System.ComponentModel.DataAnnotations;
+
 
 namespace Bnf.Tests
 {
