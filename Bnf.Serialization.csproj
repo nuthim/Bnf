@@ -51,7 +51,7 @@
     <Compile Include="BnfSettings.cs" />
     <Compile Include="Exceptions\BnfValidationException.cs" />
     <Compile Include="Infrastructure\KeyValuePairExtension.cs" />
-    <Compile Include="Infrastructure\BnfValidator.cs" />
+    <Compile Include="BnfValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Infrastructure\StringExtension.cs" />
     <Compile Include="Infrastructure\SerializerImpl.cs" />

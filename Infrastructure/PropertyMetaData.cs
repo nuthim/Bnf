@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Bnf.Serialization.Infrastructure
 {
-    public class PropertyMetaData
+    internal class PropertyMetaData
     {
         public PropertyInfo Property { get; internal set; }
 

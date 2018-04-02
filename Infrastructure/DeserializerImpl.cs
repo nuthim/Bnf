@@ -125,7 +125,6 @@ namespace Bnf.Serialization.Infrastructure
                 var serializedIndex = int.Parse(match.Groups["index"].Value);
 
                 var data = pairs[item.Key];
-                var expando = data as ExpandoObject;
 
                 var isPrimitive = !itemType.IsClass || itemType == typeof(string);
                 var value = isPrimitive ? TypeDescriptor.GetConverter(itemType).ConvertFrom(data) : DeserializeIntl((ExpandoObject)data, itemType, null);

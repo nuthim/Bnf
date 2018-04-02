@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Bnf.Serialization;
 using System.Collections.Generic;
-using System.Globalization;
 using Bnf.Serialization.Attributes;
 using Bnf.Serialization.Infrastructure;
 using System.Runtime.Serialization;

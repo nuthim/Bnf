@@ -76,7 +76,7 @@ namespace Bnf.Serialization.Infrastructure
                 expandoDict.Add(propertyName, propertyValue);
         }
 
-        private IEnumerable<string> GetPairs(string value)
+        private static IEnumerable<string> GetPairs(string value)
         {
             var stack = new Stack<char>();
             var braceCount = 0;

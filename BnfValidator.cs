@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Collections;
+using System.Linq;
+using Bnf.Serialization.Infrastructure;
 
-namespace Bnf.Serialization.Infrastructure
+namespace Bnf.Serialization
 {
     public class BnfValidator
     {
@@ -29,24 +29,12 @@ namespace Bnf.Serialization.Infrastructure
                 if (metadata.Property.GetIndexParameters().Any())
                     continue;
 
-                var isEnumerable = typeof(IEnumerable).IsAssignableFrom(metadata.Property.PropertyType);
-
                 var fieldValue = metadata.Property.GetValue(obj);
                 if (metadata.IsRequired && fieldValue == null)
                 {
                     if (metadata.NullText == null && settings.NullText == null)
                         errors.Add(new Exception($"Detected null value for required bnf field - {metadata.Property.Name}"));
                 }
-
-                //if (bnfPropertyAttribute != null)
-                //{
-                //    if (!metadata.IsReadWriteProperty)
-                //        errors.Add(new Exception($"{bnfPropertyAttribute.GetType().Name} is applied to non-readwrite property: {metadata.Property.Name}"));
-                //    else
-                //    {
-                        
-                //    }
-                //}
             }
 
             return !errors.Any();

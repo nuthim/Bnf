@@ -4,8 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Bnf.Serialization.Attributes;
 using System.Runtime.Serialization;
-using System.IO;
-using System.Text;
 
 namespace Bnf.Tests
 {

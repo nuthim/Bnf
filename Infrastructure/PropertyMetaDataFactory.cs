@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 
 namespace Bnf.Serialization.Infrastructure
 {
-    public class PropertyMetaDataFactory
+    internal class PropertyMetaDataFactory
     {
         public IEnumerable<PropertyMetaData> GetPropertyMetaData(object obj)
         {

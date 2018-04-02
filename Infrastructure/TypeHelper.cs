@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Bnf.Serialization.Infrastructure
 {
-    public class TypeHelper
+    internal class TypeHelper
     {
         public static bool IsEnumerable(Type type)
         {
